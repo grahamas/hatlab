@@ -106,9 +106,9 @@ def displaymatch(match):
 
 
 
-target_dir = r"Z:\Data\all_raw_datafiles_gs\Zizou"
-oldname = target_dir + r"\record2.json"
-newname = target_dir + r"\unpdict.json"
+target_dir = r"Z:\\Data\\all_raw_datafiles_gs\\Zizou"
+oldname = target_dir + r"\\record2.json"
+newname = target_dir + r"\\unpdict.json"
 
 with open(oldname, 'r') as oldjson:
         olddict = json.load(oldjson)
