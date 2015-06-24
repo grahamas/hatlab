@@ -90,6 +90,9 @@ if __name__ == '__main__':
 ##        with sop.open_no_clobber(numinv, 'w') as numinvf:
 ##                numinvf.write(str(invc) + ' invalid.')
 
+    # Check to see if a sha2src file already exists
+    if os.f
+
     with open(sha_fname, 'r') as shafile:
         sha2src = json.load(shafile)
 
@@ -163,8 +166,8 @@ if __name__ == '__main__':
                     shutil.copyfileobj(fin, fout, 512*1024)
             with open(src, 'rb') as fin:
                 with open(dst, 'rb') as fout:
-                    hashsrc = hashfile(fin, hashlib.sha256())
-                    hashdst = hashfile(fout, hashlib.sha256())
+                    hashsrc = sop.hashfile(fin, hashlib.sha256())
+                    hashdst = sop.hashfile(fout, hashlib.sha256())
                     if hashsrc == hashdst:
                         corrupt = False
                         invsha2src[hashsrc] = src

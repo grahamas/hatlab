@@ -34,6 +34,10 @@ def displaymatch(match):
 def get_copy_dict(monkey_path, copy_dict_name='record.json'):
     pass
 
+def new_copy_dict(source_monkey_dirs, target_monkey_dir,
+        copy_dict_name='record.json'):
+    pass
+
 
 
 #########################
@@ -131,10 +135,6 @@ if not all(map(has_monkey_dir, source_dirs)):
 if not has_monkey_dir(target_dir):
     os.mkdir(os.path.join(target_dir, monkey_name))
 
-
-
-
-
 #########################
 ######## Action #########
 #########################
@@ -227,7 +227,7 @@ target_monkey_dir  = os.path.join(target_dir, monkey_name)
 if use_existing_copy_dict:
     copy_dict = get_copy_dict(target_monkey_dir)
 else:
-    copy_dict = create_new_copy_dict(source_monkey_dirs, target_monkey_dir)
+    copy_dict = new_copy_dict(source_monkey_dirs, target_monkey_dir)
 
 if full_run:
     copy_files(copy_dict)

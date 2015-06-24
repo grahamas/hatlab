@@ -5,7 +5,7 @@ import hashlib
 
 DEFAULT_BACKUP = '.backup_records'
 
-
+# I would not call these functions "tested"
 
 #########################
 ###### Functions ########
