@@ -3,11 +3,15 @@
 import shutil
 import hashlib
 
+DEFAULT_BACKUP = '.backup_records'
+
+
+
 #########################
 ###### Functions ########
 
 # Credit Omnifarious on stack overflow
-def hashfile(afile, hasher, blocksize=65536):
+def hashfile(afile, hasher=hashlib.sha256(), blocksize=65536):
     """
         Hashes afile using hasher, reading in blocksize.
         Default blocksize is an experimentally determined optimal value
@@ -51,7 +55,7 @@ def hashdict(copydict):
             print "Hashing " + sname
             HASH = hashlib.sha256()
             start = timeit.default_timer()
-            print fsrc
+            #print fsrc # ??????
             src_sha = hashfile(fsrc, HASH)
             elapsed = timeit.default_timer() - start
             print "Time: " + str(elapsed) + " for " + sname
@@ -75,6 +79,22 @@ def hashdict(copydict):
             print "Invalid hash! " + dname
     return (invalids, sha2src)
 
+def get_highest_version_number(full_path):
+    """
+        Gets the highest version number of files named as full_path
+        in the very particular (and stupid) numbering scheme I am using.
+    """
+    highest_num_suffix = -1
+    path, filename = os.path.split(full_path)
+    basename, ext = os.path.splitext(filename)
+    baselength = len(basename)
+    for this_filename in target_dir.listdir():
+        this_basename, this_ext = os.path.splitext(this_filename)
+        if this_ext == ext and this_basename[:baselength] == basename:
+            this_num_suffix = this_basename[baselength:]
+            highest_num_suffix = max(highest_number, f_num_suffix)
+    highest_fname = os.path.join(path, basename, str(highest_num_suffix), ext)
+
 def gen_next_numeric_filename(full_path):
     """
         Finds filename similar to full_path with lowest possible numeric suffix.
@@ -85,21 +105,13 @@ def gen_next_numeric_filename(full_path):
         NOTE THAT THIS IS BADLY BEHAVED FOR NUMERIC FILENAMES
         Throws error in case of mischievious filename
     """
-    highest_num_suffix = 0
-    path, filename = os.path.split(full_path)
-    basename, ext = os.path.splitext(filename)
-    baselength = len(basename)
-    for this_filename in target_dir.listdir():
-        this_basename, this_ext = os.path.splitext(this_filename)
-        if this_ext == ext and this_basename[:baselength] == basename:
-            this_num_suffix = this_basename[baselength:]
-            highest_num_suffix = max(highest_number, f_num_suffix)
-    return_val = os.path.join(target_dir, basename + str(highest_num_suffix) + ext)
+    highest_num_suffix = get_highest_version_number(full_path)
+    return_val = os.path.join(target_dir, basename + str(highest_num_suffix+1) + ext)
     if os.isfile(return_val):
         raise ValueError("YOU CHEATED: " + full_path)
-    return os.path.join(target_dir, basename + str(highest_num_suffix) + ext)
+    return return_val
 
-def create_local_backup(full_path, backup_dir='.backup_records'):
+def create_local_backup(full_path, backup_dir=DEFAULT_BACKUP):
     """ 
         Move file indicated by full_path to the backup_dir, with num attached.
     """
@@ -111,7 +123,7 @@ def create_local_backup(full_path, backup_dir='.backup_records'):
     shutil.move(full_path, full_backup_path)
 
 
-def open_no_clobber(full_path, mode, backup_dir='.backup_records'):
+def open_no_clobber(full_path, mode, backup_dir=DEFAULT_BACKUP):
     """
         Open given file without clobbering.
         If opening to write (clobbering), move existing file to local backup.
@@ -119,3 +131,31 @@ def open_no_clobber(full_path, mode, backup_dir='.backup_records'):
     if os.path.isfile(full_path) and 'w' in mode:
         create_local_backup(full_path, backup_dir)
     return open(full_path, mode)
+
+def find_numeric_versions(full_path):
+    directory, basename = os.path.split(full_path)
+    filename, ext = os.path.splitext(basename)
+    nonnumeric_base_len = len(filename)
+    all_files = os.listdir(directory)
+    possible_files = filter(lambda f: return f[:nonnumeric_base_len] == filename, all_files)
+    possible_files = filter(lambda f: return os.path.splitext(f)[1] == ext, possible_files)
+    correct_files = filter(lambda f: 
+        return os.path.splitext(f)[0][nonnumeric_base_len:].isnumeric(), possible_files)
+    complete_paths = map(lambda f: return os.path.join(directory, f), correct_files)
+    return complete_paths
+
+
+def get_all_versions(full_path, backup_dir=DEFAULT_BACKUP):
+    """ 
+        Like find numeric versions, but includes the non-numeric 'original'
+        (which could be the most recent) and any copies in the local
+        backup directory.
+    """
+    local_copies = find_numeric_versions(full_path)
+    directory, basename = os.path.split(full_path)
+    backup_path = os.path.join(directory, backup_dir, basename)
+    backup_copies = find_numeric_versions(backup_path)
+    if os.isfile(full_path):
+        return [full_path] + local_copies + backup_copies
+    else:
+        return local_copies + backup_copies

@@ -13,48 +13,81 @@ import shutil
 import json
 import argparse
 
+import datetime
+
+from validate_records import validate_records
+
 
 ###### Constants #######
 
-RECORD_FNAME = 'record.txt'
+RECORD_FNAME = 'record.json' #oldname
+UNPDICT_FNAME = 'unpdict.json' #newname
 
 ########################
 ##### Functions ########
-
-
-### NOTE: This function is only required if there is NOT a record within the new reorg.
-def new_target(wd, dir_name):
-    """Create a target_dir if one is not provided"""
-    # Make sure target_dir doesn't clobber anything
-    target_dir = os.path.join(wd, dir_name + '_reorg')
-    if os.path.exists(target_dir):
-        valid_target = False;
-        for i in xrange(5):
-            target_dir = os.path.join(wd, dir_name + '_reorg' + str(i))
-            if not os.path.exists(target_dir):
-                valid_target = True;
-                break
-        if not valid_target:
-            print """Arbitrary limit of 5 reorgs.
-    Rewrite the code or delete some directories"""
-            exit(1)
-
-    # Now target_dir points to a non-existent directory
-    try:
-        os.makedirs(target_dir)
-    except OSError:
-        print "Error creating target directory"
-        exit(1)
-
-    return target_dir
 
 def displaymatch(match):
     if match is None:
         return None
     return '<Match: %r, groups=%r>' % (match.group(), match.groups())
 
+def get_copy_dict(monkey_path, copy_dict_name='record.json'):
+    pass
+
+
+
+#########################
+######## Class ##########
+
+class File:
+    def __init__(self, path):
+        if not os.isfile(path):
+            raise ValueError("Only use File class for existing files.")
+        self.path = path
+        self.sha = None
+        self.hashedtime = 0
+    def hash(self, force_check=False):
+        if self.hashedtime < os.path.getmtime(self.path):
+            force_check = True
+        if self.sha and not force_check:
+            return self.sha
+        else:
+            bname = os.path.basename(self.path)
+            print "Hashing " + bname
+            start = timeit.default_timer()
+            with open(self.path,'rb') as f:
+                self.sha = sop.hashfile(f)
+            elapsed = timeit.default_timer() - start
+            print "Done. Time: " + str(elapsed) + " for " + bname
+            self.hashedtime = time.gmtime()
+            return self.sha
+    def __len__(self):
+        return os.path.getsize(self.path)
+
+
+class OrganizedFile(File):
+    def __init__(self, path, source_path):
+        super(OrganizedFile, self).__init__(self, path)
+        self.source_paths = [source_path]
+    def sources_hash_equal(self, all_sources, force_check=False):
+        if len(self.sources) == 1:
+            return True
+        source_objs = map(lambda source_path: all_sources[source_path],self.source_paths)
+        return reduce(operator.eq, map(lambda source: return source.hash(force_check), 
+            source_objs))
+    def first_source_hashes_equal(self, all_sources, force_check=False):
+        first_source = all_sources[self.source_paths[0]]
+
+
+class SourceFile(File):
+    def __init__(self, path):
+        super(SourceFile, self).__init__(self, path)
+        self.copied = False
+        self.destination = None
+
 #########################
 ######## Setup ##########
+#########################
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--source_dirs', nargs='+', required=True,
@@ -64,20 +97,27 @@ parser.add_argument('--target_dir', nargs='1', required=True,
 parser.add_argument('--monkey', action='store', required=True,
     description="""Name of monkey. Only one monkey per run.
     NOTE: Monkey name must match exactly a subdirectory of each source_dir.""")
+parser.add_argument('--full_run', action='store-const', const=True,
+    default=False, description='If this flag is present, will copy files.')
+parser.add_argument('--use_existing_copy_dict', action='store-const', const=True,
+    default=False, description='If this flag is present, will look for a copy_dict')
 args = parser.parse_args()
 
 monkey_name = args.monkey
+full_run = args.full_run
+use_existing_copy_dict = args.use_existing_copy_dict
 
+# Validation functions
 def strip_mnky_name(path):
     head, tail = os.path.split(path)
     if tail == monkey_name:
         tail = ''
     return os.path.join(head, tail)
+
+has_mnky_dir = lambda d: return monkey_name in os.listdir(d)
     
 source_dirs = [strip_mnky_name(path) for path in args.source_dirs]
 target_dir = strip_mnky_name(args.target_dir)
-
-has_mnky_dir = lambda d: return monkey_name in os.listdir(d)
 
 if not all(map(os.path.isabs,source_dirs)):
     raise ValueError("All input dirs must be absolute paths.")
@@ -93,21 +133,11 @@ if not has_monkey_dir(target_dir):
 
 
 
-reorganized_dir = r"Z:\\Data\\all_raw_datafiles_gs\\Zizou"
-oldname = os.path.join(target_dir,"record.json")
-newname = os.path.join(target_dir,"unpdict.json")
 
-with open(oldname, 'r') as oldjson:
-    olddict = json.load(oldjson)
-
-with open(newname, 'r') as newjson:
-    newdict = json.load(newjson)
-
-for key, value in newdict.iteritems():
-    newdict[key] = os.path.basename(value)
 
 #########################
 ######## Action #########
+#########################
 
 remap = dict();
 date = re.compile(r'[0-9]{8}')
@@ -185,3 +215,19 @@ print 'done.'
 
 # print "... done."
 
+#############################################################################
+####################### HERE LIES THE CONTROL FLOW ##########################
+#############################################################################
+
+### These are the names of the directories where the files will move from/to
+source_monkey_dirs = map(lambda d: return os.path.join(d, monkey_name), 
+    source_dirs)
+target_monkey_dir  = os.path.join(target_dir, monkey_name)
+
+if use_existing_copy_dict:
+    copy_dict = get_copy_dict(target_monkey_dir)
+else:
+    copy_dict = create_new_copy_dict(source_monkey_dirs, target_monkey_dir)
+
+if full_run:
+    copy_files(copy_dict)
