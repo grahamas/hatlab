@@ -32,7 +32,10 @@ def displaymatch(match):
     return '<Match: %r, groups=%r>' % (match.group(), match.groups())
 
 def get_copy_dict(monkey_path, copy_dict_name='record.json'):
-    pass
+    path = get_highest_version_filename(os.path.join(monkey_path, copy_dict_name))
+    with open(path, 'r') as copy_dict_file:
+        copy_dict = json.load(copy_dict_file)
+    return copy_dict
 
 def new_copy_dict(source_monkey_dirs, target_monkey_dir,
         copy_dict_name='record.json'):

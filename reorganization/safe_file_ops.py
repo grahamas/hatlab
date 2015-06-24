@@ -79,21 +79,57 @@ def hashdict(copydict):
             print "Invalid hash! " + dname
     return (invalids, sha2src)
 
-def get_highest_version_number(full_path):
+def generate_version_path(generic_path, version_num):
+    """
+        Given a generic (unversioned) path, generate the path
+        corresponding to the given version_num.
+    """
+    path, ext = os.path.splitext(generic_path)
+    new_path = path + str(version_num)
+    new_full_path = os.path.join(new_path, ext)
+    return new_full_path
+
+def get_version_num(generic_path, versioned_path):
+    """
+        Given a versioned path and the generic path, return
+        the version number of the versioned path.
+
+        First ensure versioned path is a version of the generic.
+        Return -1 if not a version.
+    """
+    generic_base, generic_ext = os.splitext(generic_path)
+    base_len = len(generic_base)
+    versioned_base, versioned_ext = os.splitext(versioned_path)
+    if (generic_ext == versioned_ext and 
+        generic_base == versioned_base[:base_len]):
+        try:
+            return int(versioned_base[base_len:])
+        except ValueError:
+            return -1
+    else:
+        return -1
+
+def get_highest_version_num(full_path):
     """
         Gets the highest version number of files named as full_path
         in the very particular (and stupid) numbering scheme I am using.
     """
-    highest_num_suffix = -1
     path, filename = os.path.split(full_path)
-    basename, ext = os.path.splitext(filename)
-    baselength = len(basename)
-    for this_filename in target_dir.listdir():
-        this_basename, this_ext = os.path.splitext(this_filename)
-        if this_ext == ext and this_basename[:baselength] == basename:
-            this_num_suffix = this_basename[baselength:]
-            highest_num_suffix = max(highest_number, f_num_suffix)
-    highest_fname = os.path.join(path, basename, str(highest_num_suffix), ext)
+    highest_version_num = max(map(
+        lambda f: return get_version_num(full_path, os.path.join(path,f)), 
+        os.path.listdir(path)))
+    return highest_version_num
+
+def get_highest_version_filename(full_path):
+    """
+        Finds most recent filename (does not look in backups).
+        Does not use modified date, only version number.
+    """
+    highest_version_num = get_highest_version_num_number(full_path)
+    if highest_version_num > -1:
+        return generate_version_path(full_path, highest_version_num)
+    else:
+        return None        
 
 def gen_next_numeric_filename(full_path):
     """
@@ -105,8 +141,8 @@ def gen_next_numeric_filename(full_path):
         NOTE THAT THIS IS BADLY BEHAVED FOR NUMERIC FILENAMES
         Throws error in case of mischievious filename
     """
-    highest_num_suffix = get_highest_version_number(full_path)
-    return_val = os.path.join(target_dir, basename + str(highest_num_suffix+1) + ext)
+    highest_version_num = get_highest_version_num_number(full_path)
+    return_val = os.path.join(target_dir, basename + str(highest_version_num+1) + ext)
     if os.isfile(return_val):
         raise ValueError("YOU CHEATED: " + full_path)
     return return_val
