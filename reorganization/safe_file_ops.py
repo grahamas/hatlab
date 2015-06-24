@@ -1,11 +1,18 @@
 
-
+import os
 import shutil
 import hashlib
 
 DEFAULT_BACKUP = '.backup_records'
 
 # I would not call these functions "tested"
+
+def isnumeric(string):
+    try:
+        int(string)
+        return True
+    except ValueError:
+        return False
 
 #########################
 ###### Functions ########
@@ -116,7 +123,7 @@ def get_highest_version_num(full_path):
     """
     path, filename = os.path.split(full_path)
     highest_version_num = max(map(
-        lambda f: return get_version_num(full_path, os.path.join(path,f)), 
+        lambda f: get_version_num(full_path, os.path.join(path,f)), 
         os.path.listdir(path)))
     return highest_version_num
 
@@ -170,14 +177,16 @@ def open_no_clobber(full_path, mode, backup_dir=DEFAULT_BACKUP):
 
 def find_numeric_versions(full_path):
     directory, basename = os.path.split(full_path)
+    if not os.path.isdir(directory):
+        return []
     filename, ext = os.path.splitext(basename)
     nonnumeric_base_len = len(filename)
     all_files = os.listdir(directory)
-    possible_files = filter(lambda f: return f[:nonnumeric_base_len] == filename, all_files)
-    possible_files = filter(lambda f: return os.path.splitext(f)[1] == ext, possible_files)
+    possible_files = filter(lambda f: f[:nonnumeric_base_len] == filename, all_files)
+    possible_files = filter(lambda f: os.path.splitext(f)[1] == ext, possible_files)
     correct_files = filter(lambda f: 
-        return os.path.splitext(f)[0][nonnumeric_base_len:].isnumeric(), possible_files)
-    complete_paths = map(lambda f: return os.path.join(directory, f), correct_files)
+        isnumeric(os.path.splitext(f)[0][nonnumeric_base_len:]), possible_files)
+    complete_paths = map(lambda f: os.path.join(directory, f), correct_files)
     return complete_paths
 
 
@@ -191,7 +200,7 @@ def get_all_versions(full_path, backup_dir=DEFAULT_BACKUP):
     directory, basename = os.path.split(full_path)
     backup_path = os.path.join(directory, backup_dir, basename)
     backup_copies = find_numeric_versions(backup_path)
-    if os.isfile(full_path):
+    if os.path.isfile(full_path):
         return [full_path] + local_copies + backup_copies
     else:
         return local_copies + backup_copies

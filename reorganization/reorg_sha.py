@@ -17,27 +17,12 @@ from multiprocessing import Process, Lock, Pool, Manager, Queue
 
 # Home-made safe_file_ops module
 import safe_file_ops as sop
-
-
-
-#########################
-####### Classes #########
-
-
-# def run(tid, dct, statusq, retq):
-#     print "Starting " + str(tid)
-#     ret = hashdict(dct, statusq)
-#     retq.put(ret)
-#     print "Exiting " + str(tid)
-#     print 'STOP'
         
             
 #########################
 ######## Setup ##########
     
 if __name__ == '__main__':
-
-    NUMPROC = 20
 
     # TODO: Make target_root an argument
     reorganized_root = "Z:\Data\\all_raw_datafiles_gs\\"
@@ -48,7 +33,7 @@ if __name__ == '__main__':
     monkey_name = "Zizou"
     reorganized_monkey_dir = os.path.join(reorganized_root, monkey_name)
 
-    create_output_fname = lambda name: return os.path.join(reorganized_monkey_dir,
+    create_output_fname = lambda name: os.path.join(reorganized_monkey_dir,
         name)
 
     # TODO: Procedurally generate new names to avoid clobbering
