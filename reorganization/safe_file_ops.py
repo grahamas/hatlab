@@ -4,6 +4,8 @@ import shutil
 import hashlib
 
 DEFAULT_BACKUP = '.backup_records'
+WINDOWS_ROOT = 'Z:'
+UNIX_ROOT = '/media/nicholab'
 
 # I would not call these functions "tested"
 
@@ -104,9 +106,9 @@ def get_version_num(generic_path, versioned_path):
         First ensure versioned path is a version of the generic.
         Return -1 if not a version.
     """
-    generic_base, generic_ext = os.splitext(generic_path)
+    generic_base, generic_ext = os.path.splitext(generic_path)
     base_len = len(generic_base)
-    versioned_base, versioned_ext = os.splitext(versioned_path)
+    versioned_base, versioned_ext = os.path.splitext(versioned_path)
     if (generic_ext == versioned_ext and 
         generic_base == versioned_base[:base_len]):
         try:
@@ -124,7 +126,7 @@ def get_highest_version_num(full_path):
     path, filename = os.path.split(full_path)
     highest_version_num = max(map(
         lambda f: get_version_num(full_path, os.path.join(path,f)), 
-        os.path.listdir(path)))
+        os.listdir(path)))
     return highest_version_num
 
 def get_highest_version_filename(full_path):
@@ -132,7 +134,7 @@ def get_highest_version_filename(full_path):
         Finds most recent filename (does not look in backups).
         Does not use modified date, only version number.
     """
-    highest_version_num = get_highest_version_num_number(full_path)
+    highest_version_num = get_highest_version_num(full_path)
     if highest_version_num > -1:
         return generate_version_path(full_path, highest_version_num)
     else:
@@ -148,9 +150,10 @@ def gen_next_numeric_filename(full_path):
         NOTE THAT THIS IS BADLY BEHAVED FOR NUMERIC FILENAMES
         Throws error in case of mischievious filename
     """
-    highest_version_num = get_highest_version_num_number(full_path)
-    return_val = os.path.join(target_dir, basename + str(highest_version_num+1) + ext)
-    if os.isfile(return_val):
+    highest_version_num = get_highest_version_num(full_path)
+    path, ext = os.path.splitext(full_path)
+    return_val = path + str(highest_version_num+1) + ext
+    if os.path.isfile(return_val):
         raise ValueError("YOU CHEATED: " + full_path)
     return return_val
 
@@ -204,3 +207,11 @@ def get_all_versions(full_path, backup_dir=DEFAULT_BACKUP):
         return [full_path] + local_copies + backup_copies
     else:
         return local_copies + backup_copies
+
+def split_path(path, windows_root=WINDOWS_ROOT, unix_root=UNIX_ROOT):
+    unix_sep = '/'
+    windows_sep = '\\'
+    if unix_sep in path:
+        return path.split(unix_sep)
+    else:
+        return path.split(windows_sep)

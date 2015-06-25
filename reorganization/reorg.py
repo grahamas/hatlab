@@ -1,8 +1,16 @@
 #!/usr/bin/env python
 
-import sys
-import os
+#### WOW THIS IS TERRIBLE
+#### PLEASE NOTE
+#### THIS ASSUMES THAT A UNIX FILESYSTEM
+#### HAS THE SHARED DRIVE
+#### ROOTED AT THE SECOND LEVEL
+#### E.G. /media/nicholab
+#### GOD HELP US ALL
+
 import re
+import os
+import sys
 import time
 import itertools
 import shutil
@@ -14,10 +22,16 @@ import safe_file_ops as sop
 from validate_records import validate_records
 
 
+##### NOOOOOOOOOOOOOOOOOOOTEEEEEEEE:::::: ONLY STORE JSON FILES
+##### IN A NON-OS-SPECIFIC FORMAT.
+##### E.G.: Store paths as LISTS that DO NOT include the ROOT,
+##### INSTEAD ALL FILE NAMES WILL BE RELATIVE TO THE SHARED DRIVE
+
 ###### Constants #######
 
 RECORD_FNAME = 'record.json' #oldname
 UNPDICT_FNAME = 'unpdict.json' #newname
+UNKNOWN_PATH = 'UNKNOWN'
 
 ########################
 ##### Functions ########
@@ -27,33 +41,122 @@ def displaymatch(match):
         return None
     return '<Match: %r, groups=%r>' % (match.group(), match.groups())
 
-def validate_records(monkey_path, record_fname=RECORD_FNAME):
+def add_record_to_source_files(record, source_files, log=sys.stdout):
+    for source, destination in record.iteritems():
+        if source in source_files.keys():
+            log.write('Source moved twice: {}\n'.format(source))
+            if source_files[source].destination != destination:
+                log.write('ERROR: Two destinations!\n')
+                log.write('\t DESTINATION: {}\n'.format(source_files[source].destination))
+                log.write('\t DESTINATION: {}\n'.format(destination))
+        else:
+            source_files[source] = SourceFile(source, destination)
+    return source_files
+
+def add_record_to_organized_files(record, organized_files, log=sys.stdout):
+    for source, destination in record.iteritems():
+        if destination in organized_files.keys():
+            log.write('Destination with multiple sources: {}\n'.format(destination))
+            if not organized_files[destination].add_source(source):
+                log.write('Destination has same source:\n')
+                log.write('\t DESTINATION: {}\n'.format(destination))
+                log.write('\t SOURCE: {}\n'.format(source))
+        else:
+            organized_files[destination] = OrganizedFile(source, destination)
+    return organized_files
+
+def fix_path(path):
+    new_path = sop.split_path(path)
+    if new_path[0] == '':
+        # unix path
+        #print 'Found UNIX path. Attempting to fix.'
+        new_path = new_path[3:] # BAAAAAAD
+    elif ':' in new_path[0]:
+        # windows path
+        #print 'Found bad WINDOWS path. Attempting to fix.'
+        new_path = new_path[1:] # BAAAAAAD
+    else:
+        raise ValueError("Ambiguous (or relative) path: " + path)
+    return os.path.join(root,*new_path)
+
+def verify_destinations_exist(source_files, organized_files,log=sys.stdout):
+    """
+        For each destination, ensure it exists.
+    """
+    all_exist = True
+    for source,source_file in source_files.iteritems():
+        destination = source_file.destination
+        organized_file = organized_files[destination]
+        if not organized_file.exists:
+            all_exist = False
+            log.write('Destination file does not exist\n')
+            log.write('\t SOURCE: {}\n'.format(source))
+            log.write('\t DESTINATION: {}\n'.format(destination))
+    return all_exist
+
+def ensure_organized_record_completeness(organized_files, log=sys.stdout):
+    """
+        Find any un-sourced files and add them to the organized_files dictionary.
+        Note that this introduces a lot of irrelevant cruft due to not excluding
+        non-date directory structures.
+    """
+    for root, dirs, files in os.walk(target_monkey_dir):
+        monkey_files = filter(lambda f: f[0] == target_monkey_prefix, files)
+        full_monkey_paths = map(lambda f: os.path.join(root, f), monkey_files)
+        unexpected_files = filter(lambda f: f in organized_files, full_monkey_paths)
+        for f in unexpected_files:
+            log.write('{}\n'.format(f))
+            organized_files[f] = OrganizedFile(source_path=UNKNOWN_PATH,path=f)
+    return organized_files
+
+def write_record(new_record, record_fname=RECORD_FNAME):
+    with sop.open_no_clobber(record_fname, 'w') as f:
+        json.dump(new_record, f)
+
+def parse_record(record, source_files={}, organized_files={}):
+    source_files = add_record_to_source_files(record, source_files, log)
+    organized_files = add_record_to_organized_files(record, organized_files, log)
+    return source_files, organized_files
+
+def validate_record(monkey_path, record_fname=RECORD_FNAME, log=sys.stdout):
+    record = get_record(monkey_path, record_fname)
+    if BAD_RECORDS:
+        all_records = record
+        source_files = {}
+        organized_files = {}
+        for record in all_records:
+            source_files, organized_files = parse_record(record, source_files, organized_files) 
+    #organized_files = ensure_organized_record_completeness(organized_files, log)
+    if FIX_RECORDS:
+        new_record = {k:v.destination for k,v in source_files.iteritems()}
+        write_record(new_record)
+    return verify_destinations_exist(source_files, organized_files, log)
+
+def get_record(monkey_path, record_fname=RECORD_FNAME):
     record_path = os.path.join(monkey_path, record_fname)
-    all_record_paths = sop.get_all_versions(record_path)
     def open_record(path):
-        with open(path, 'r') as record_file:
-            return json.load(record_file)
-    all_records = map(open_record, all_record_paths)
+            with open(path, 'r') as record_file:
+                record = json.load(record_file)
+                return {fix_path(key):fix_path(value) for (key,value) in record.iteritems()}
+    if BAD_RECORDS:
+        all_record_paths = sop.get_all_versions(record_path)
+        all_records = map(open_record, all_record_paths)
+        return all_records
+    else:
+        record = open_record(record_path)
+        return record
 
-def get_copy_dict(monkey_path, record_fname=RECORD_FNAME):
-    path = get_highest_version_filename(os.path.join(monkey_path, copy_dict_fname))
-    with open(path, 'r') as copy_dict_file:
-        copy_dict = json.load(copy_dict_file)
-    return copy_dict
-
-def new_copy_dict(source_monkey_dirs, target_monkey_dir,
-        record_fname=RECORD_FNAME):
+def new_record(source_monkey_dirs, target_monkey_dir, record_fname=RECORD_FNAME):
+    current_records = get_records(target_monkey_dir, record_fname)
+    for root, 
     pass
-
-
 
 #########################
 ######## Class ##########
 
-class File:
+class File(object):
     def __init__(self, path):
-        if not os.path.isfile(path):
-            raise ValueError("Only use File class for existing files.")
+        self.exists = os.path.isfile(path)
         self.path = path
         self.sha = None
         self.hashedtime = 0
@@ -80,10 +183,9 @@ class File:
     def __len__(self):
         return os.path.getsize(self.path)
 
-
 class OrganizedFile(File):
-    def __init__(self, path, source_path):
-        super(OrganizedFile, self).__init__(self, path)
+    def __init__(self, source_path, path):
+        super(OrganizedFile, self).__init__(path)
         self.source_paths = [source_path]
     def sources_hash_equal(self, all_sources, force_check=False):
         if len(self.sources) == 1:
@@ -93,13 +195,18 @@ class OrganizedFile(File):
             source_objs))
     def first_source_hash_equal(self, all_sources, force_check=False):
         first_source = all_sources[self.source_paths[0]]
-
+    def add_source(self, source):
+        if source in self.source_paths:
+            return False
+        else:
+            self.source_paths.append(source)
+            return True
 
 class SourceFile(File):
-    def __init__(self, path):
-        super(SourceFile, self).__init__(self, path)
+    def __init__(self, path, destination):
+        super(SourceFile, self).__init__(path)
         self.copied = False
-        self.destination = None
+        self.destination = destination
 
 #########################
 ######## Setup ##########
@@ -120,12 +227,20 @@ parser.add_argument('--use_existing_copy_dict', action='store_true',
 parser.add_argument('--just_validate_records', action='store_true',
     default=False, help="""If this flag is present, 
     will only validate existing records""")
+parser.add_argument('--root', action='store', required=True,
+    help="Indicates the shared drive root (e.g. Z:)")
+parser.add_argument('--bad_records', action='store_true',
+    help="Use this to reconcile old records.")
+parser.add_argument('--fix_records', action='store_true', default=False)
 args = parser.parse_args()
 
 monkey_name = args.monkey
 full_run = args.full_run
 use_existing_copy_dict = args.use_existing_copy_dict
 just_validate_records = args.just_validate_records
+root = args.root
+BAD_RECORDS = args.bad_records
+FIX_RECORDS = args.fix_records
 
 # Validation functions
 def strip_mnky_name(path):
@@ -150,6 +265,30 @@ if not os.path.isabs(target_dir):
     raise ValueError("All input dirs must be absolute paths.")
 if not has_monkey_dir(target_dir):
     os.mkdir(os.path.join(target_dir, monkey_name))
+
+### These are the names of the directories where the files will move to
+target_monkey_dir  = os.path.join(target_dir, monkey_name)
+target_monkey_prefix = monkey_name[0].lower()
+source_monkey_prefices = target_monkey_prefix + target_monkey_prefix.upper()
+
+#############################################################################
+####################### HERE LIES THE CONTROL FLOW ##########################
+#############################################################################
+
+if just_validate_records:
+    validate_records(target_monkey_dir)
+    sys.exit(0)
+
+### These are the names of the directories where the files will move from
+source_monkey_dirs = map(lambda d: os.path.join(d, monkey_name), 
+    source_dirs)
+if use_existing_records:
+    copy_dict = get_records(target_monkey_dir)
+else:
+    copy_dict = new_record(source_monkey_dirs, target_monkey_dir)
+
+if full_run:
+    copy_files(copy_dict)
 
 #########################
 ######## Action #########
@@ -231,23 +370,4 @@ if not has_monkey_dir(target_dir):
 
 # print "... done."
 
-#############################################################################
-####################### HERE LIES THE CONTROL FLOW ##########################
-#############################################################################
 
-### These are the names of the directories where the files will move to
-target_monkey_dir  = os.path.join(target_dir, monkey_name)
-if just_validate_records:
-    validate_records(target_monkey_dir)
-    sys.exit(0)
-
-### These are the names of the directories where the files will move from
-source_monkey_dirs = map(lambda d: os.path.join(d, monkey_name), 
-    source_dirs)
-if use_existing_copy_dict:
-    copy_dict = get_copy_dict(target_monkey_dir)
-else:
-    copy_dict = new_copy_dict(source_monkey_dirs, target_monkey_dir)
-
-if full_run:
-    copy_files(copy_dict)
