@@ -156,6 +156,12 @@ def from_new_record(source_monkey_dirs, target_monkey_dir, record_fname=RECORD_F
     source_files, organized_files = parse_record(current_record)
     for source_dir in source_monkey_dirs:
         for root, dirs, files in os.walk(source_dir):
+            exclude_me = False
+            for string in EXCLUDE_STRS:
+                if string in root:
+                    exclude_me = True
+            if exclude_me:
+                continue
             monkey_files = filter(lambda f: f[0] in source_monkey_prefices, files)
             full_monkey_paths = map(lambda f: os.path.join(root, f), monkey_files)
             for monkey_path in full_monkey_paths:
@@ -176,28 +182,37 @@ def infer_date(ambiguous, mod_time_epoch):
         year_case = 'y'
     else:
         year_case = 'Y'
-    date1 = datetime.datetime.strptime(ambiguous, '%{}%m%d'.format(year_case))
-    date2 = datetime.datetime.strptime(ambiguous, '%d%m%{}'.format(year_case))
-    if date1 < MIN_TIME or date1 > MAX_TIME:
-        if date2 > MIN_TIME and date2 < MAX_TIME:
-            return date2.strftime(output_date_format)
-        else:
-            return None
-    else:
-        if date2 < MIN_TIME or date2 > MAX_TIME:
-            return date1.strftime(output_date_format)
-    # If we get here, then both dates are broadly possible.
+    possible_formats = ['%{}%m%d'.format(year_case), '%d%m%{}'.format(year_case),
+        '%m%d%{}'.format(year_case)]
     mod_date = datetime.datetime.fromtimestamp(mod_time_epoch).date()
-    if date1 <= mod_date:
-        if date2 > mod_date:
-            return date1.strftime(output_date_format)
-        else:
-            return None
-    else:
-        if date <= mod_date:
-            return date2.strftime(output_date_format)
-        else:
-            return None
+
+    def to_date(dt, fmt):
+        try:
+            return datetime.datetime.strptime(dt, fmt).date()
+        except ValueError:
+            return datetime.datetime.fromtimestamp(0).date()
+
+    possible_dates = map(lambda fmt: to_date(ambiguous, fmt), possible_formats)
+    possible_dates = filter(lambda dt: dt > MIN_DATE and dt < MAX_DATE, possible_dates)
+    possible_dates = filter(lambda dt: dt <= mod_date, possible_dates)
+
+    if len(possible_dates) == 1:
+        return possible_dates[0].strftime(output_date_format)
+
+    possible_dates = filter(lambda dt: mod_date - dt < datetime.timedelta(30), possible_dates)
+
+    if len(possible_dates) == 1:
+        return possible_dates[0].strftime(output_date_format)
+
+    possible_dates = list(set(possible_dates))
+
+    if len(possible_dates) == 1:
+        return possible_dates[0].strftime(output_date_format)
+
+    possible_dates = filter(lambda dt: mod_date == dt, possible_dates)
+
+    if len(possible_dates) == 1:
+        return possible_dates[0].strftime(output_date_format)
 
 #########################
 ######## Class ##########
@@ -268,8 +283,11 @@ class SourceFile(File):
         remove_non_numerics = lambda match: NON_NUMERIC_RE.sub('',match.group())
         date_strs = map(remove_non_numerics, matches)
         std_date = None
+        print datetime.datetime.fromtimestamp(path_time).strftime('%Y%m%d')
         for date_str in date_strs:
+            print date_str
             std_date = infer_date(date_str, path_time)
+            print std_date
             if std_date is not None: break
         if std_date is None:
             raise ValueError("File name has no date: {}\n".format(path))
@@ -303,6 +321,8 @@ parser.add_argument('--root', action='store', required=True,
 parser.add_argument('--bad_records', action='store_true',
     help="Use this to reconcile old records.")
 parser.add_argument('--fix_records', action='store_true', default=False)
+parser.add_argument('--exclude_dirs', action='store', nargs='+',
+    help='Exclude directories containing this string.')
 args = parser.parse_args()
 
 monkey_name = args.monkey
@@ -312,6 +332,7 @@ just_validate_records = args.just_validate_records
 root = args.root
 BAD_RECORDS = args.bad_records
 FIX_RECORDS = args.fix_records
+EXCLUDE_STRS = args.exclude_dirs
 
 # Validation functions
 def strip_mnky_name(path):
