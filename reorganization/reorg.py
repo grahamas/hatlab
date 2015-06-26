@@ -16,16 +16,9 @@ import itertools
 import shutil
 import json
 import argparse
+import datetime
 
 import safe_file_ops as sop
-
-from validate_records import validate_records
-
-
-##### NOOOOOOOOOOOOOOOOOOOTEEEEEEEE:::::: ONLY STORE JSON FILES
-##### IN A NON-OS-SPECIFIC FORMAT.
-##### E.G.: Store paths as LISTS that DO NOT include the ROOT,
-##### INSTEAD ALL FILE NAMES WILL BE RELATIVE TO THE SHARED DRIVE
 
 ###### Constants #######
 
@@ -33,13 +26,21 @@ RECORD_FNAME = 'record.json' #oldname
 UNPDICT_FNAME = 'unpdict.json' #newname
 UNKNOWN_PATH = 'UNKNOWN'
 
+DATE_RE_STRS = [r'[0-9]{8}', 
+    r'[0-9]{6}', 
+    r'\d{2}_\d{2}_\d{2}',
+    r'\d{2}_\d{2}_\d{4}',
+    r'\d{4}_\d{2}_\d{2}']
+
+DATE_RES = map(re.compile, DATE_RE_STRS)
+
+NON_NUMERIC_RE = re.compile(r'[^\d]+')
+
+MIN_DATE = datetime.datetime.strptime('20120101','%Y%m%d').date()
+MAX_DATE = datetime.datetime.now().date()
+
 ########################
 ##### Functions ########
-
-def displaymatch(match):
-    if match is None:
-        return None
-    return '<Match: %r, groups=%r>' % (match.group(), match.groups())
 
 def add_record_to_source_files(record, source_files, log=sys.stdout):
     for source, destination in record.iteritems():
@@ -109,11 +110,12 @@ def ensure_organized_record_completeness(organized_files, log=sys.stdout):
             organized_files[f] = OrganizedFile(source_path=UNKNOWN_PATH,path=f)
     return organized_files
 
-def write_record(new_record, record_fname=RECORD_FNAME):
+def write_record_from_source_files(source_files, record_fname=RECORD_FNAME):
+    new_record = {k:v.destination for k,v in source_files.iteritems()}
     with sop.open_no_clobber(record_fname, 'w') as f:
         json.dump(new_record, f)
 
-def parse_record(record, source_files={}, organized_files={}):
+def parse_record(record, source_files={}, organized_files={}, log=sys.stdout):
     source_files = add_record_to_source_files(record, source_files, log)
     organized_files = add_record_to_organized_files(record, organized_files, log)
     return source_files, organized_files
@@ -128,8 +130,7 @@ def validate_record(monkey_path, record_fname=RECORD_FNAME, log=sys.stdout):
             source_files, organized_files = parse_record(record, source_files, organized_files) 
     #organized_files = ensure_organized_record_completeness(organized_files, log)
     if FIX_RECORDS:
-        new_record = {k:v.destination for k,v in source_files.iteritems()}
-        write_record(new_record)
+        write_record_from_source_files(source_files)
     return verify_destinations_exist(source_files, organized_files, log)
 
 def get_record(monkey_path, record_fname=RECORD_FNAME):
@@ -146,10 +147,57 @@ def get_record(monkey_path, record_fname=RECORD_FNAME):
         record = open_record(record_path)
         return record
 
-def new_record(source_monkey_dirs, target_monkey_dir, record_fname=RECORD_FNAME):
-    current_records = get_records(target_monkey_dir, record_fname)
-    for root, 
-    pass
+def from_old_record(monkey_path, record_fname=RECORD_FNAME):
+
+    return parse_record(get_record(monkey_path, record_fname))
+
+def from_new_record(source_monkey_dirs, target_monkey_dir, record_fname=RECORD_FNAME):
+    current_record = get_record(target_monkey_dir, record_fname)
+    source_files, organized_files = parse_record(current_record)
+    for source_dir in source_monkey_dirs:
+        for root, dirs, files in os.walk(source_dir):
+            monkey_files = filter(lambda f: f[0] in source_monkey_prefices, files)
+            full_monkey_paths = map(lambda f: os.path.join(root, f), monkey_files)
+            for monkey_path in full_monkey_paths:
+                if monkey_path not in source_files:
+                    print 'New file: {}\n'.format(monkey_path)
+                    source_files[monkey_path] = SourceFile.infer_destination(monkey_path)
+    write_record_from_source_files(source_files)
+    return source_files, organized_files
+
+def infer_date(ambiguous, mod_time_epoch):
+    """
+        Infers an eight digit date of the form "YYYYmmdd" from either
+        a six or eight digit date input of any (reasonable) similar format,
+        plus the modification time in seconds since Unix epoch.
+    """
+    output_date_format = '%Y%m%d'
+    if len(ambiguous) == 6:
+        year_case = 'y'
+    else:
+        year_case = 'Y'
+    date1 = datetime.datetime.strptime(ambiguous, '%{}%m%d'.format(year_case))
+    date2 = datetime.datetime.strptime(ambiguous, '%d%m%{}'.format(year_case))
+    if date1 < MIN_TIME or date1 > MAX_TIME:
+        if date2 > MIN_TIME and date2 < MAX_TIME:
+            return date2.strftime(output_date_format)
+        else:
+            return None
+    else:
+        if date2 < MIN_TIME or date2 > MAX_TIME:
+            return date1.strftime(output_date_format)
+    # If we get here, then both dates are broadly possible.
+    mod_date = datetime.datetime.fromtimestamp(mod_time_epoch).date()
+    if date1 <= mod_date:
+        if date2 > mod_date:
+            return date1.strftime(output_date_format)
+        else:
+            return None
+    else:
+        if date <= mod_date:
+            return date2.strftime(output_date_format)
+        else:
+            return None
 
 #########################
 ######## Class ##########
@@ -207,6 +255,29 @@ class SourceFile(File):
         super(SourceFile, self).__init__(path)
         self.copied = False
         self.destination = destination
+    @classmethod
+    def infer_destination(cls, path):
+        """
+            Infers the path of the destination given the source path.
+            Returns a SourceFile object with the appropriate destination.
+        """
+        root, basename = os.path.split(path)
+        path_time = os.path.getmtime(path)
+        match_to_re = lambda r: r.match(basename, 1)
+        matches = [x for x in map(match_to_re, DATE_RES) if x is not None]
+        remove_non_numerics = lambda match: NON_NUMERIC_RE.sub('',match.group())
+        date_strs = map(remove_non_numerics, matches)
+        std_date = None
+        for date_str in date_strs:
+            std_date = infer_date(date_str, path_time)
+            if std_date is not None: break
+        if std_date is None:
+            raise ValueError("File name has no date: {}\n".format(path))
+            return None
+        fst, snd = basename.split(date_str)
+        destination = fst + std_date + snd
+        return cls(path, destination)
+
 
 #########################
 ######## Setup ##########
@@ -222,11 +293,11 @@ parser.add_argument('--monkey', action='store', required=True,
     NOTE: Monkey name must match exactly a subdirectory of each source_dir.""")
 parser.add_argument('--full_run', action='store_true',
     default=False, help='If this flag is present, will copy files.')
-parser.add_argument('--use_existing_copy_dict', action='store_true',
-    default=False, help='If this flag is present, will look for a copy_dict')
+parser.add_argument('--use_existing_record', action='store_true',
+    default=False, help='If this flag is present, will not generate a new record')
 parser.add_argument('--just_validate_records', action='store_true',
     default=False, help="""If this flag is present, 
-    will only validate existing records""")
+    will only validate existing record.""")
 parser.add_argument('--root', action='store', required=True,
     help="Indicates the shared drive root (e.g. Z:)")
 parser.add_argument('--bad_records', action='store_true',
@@ -236,7 +307,7 @@ args = parser.parse_args()
 
 monkey_name = args.monkey
 full_run = args.full_run
-use_existing_copy_dict = args.use_existing_copy_dict
+use_existing_record = args.use_existing_record
 just_validate_records = args.just_validate_records
 root = args.root
 BAD_RECORDS = args.bad_records
@@ -271,6 +342,7 @@ target_monkey_dir  = os.path.join(target_dir, monkey_name)
 target_monkey_prefix = monkey_name[0].lower()
 source_monkey_prefices = target_monkey_prefix + target_monkey_prefix.upper()
 
+
 #############################################################################
 ####################### HERE LIES THE CONTROL FLOW ##########################
 #############################################################################
@@ -282,13 +354,13 @@ if just_validate_records:
 ### These are the names of the directories where the files will move from
 source_monkey_dirs = map(lambda d: os.path.join(d, monkey_name), 
     source_dirs)
-if use_existing_records:
-    copy_dict = get_records(target_monkey_dir)
+if use_existing_record:
+    source_files, organized_files = from_old_record(target_monkey_dir)
 else:
-    copy_dict = new_record(source_monkey_dirs, target_monkey_dir)
+    source_files, organized_files = from_new_record(source_monkey_dirs, target_monkey_dir)
 
 if full_run:
-    copy_files(copy_dict)
+    copy_files(source_files, organized_files)
 
 #########################
 ######## Action #########

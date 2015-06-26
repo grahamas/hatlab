@@ -178,7 +178,7 @@ def open_no_clobber(full_path, mode, backup_dir=DEFAULT_BACKUP):
         create_local_backup(full_path, backup_dir)
     return open(full_path, mode)
 
-def find_numeric_versions(full_path):
+def get_numeric_versions(full_path):
     directory, basename = os.path.split(full_path)
     if not os.path.isdir(directory):
         return []
