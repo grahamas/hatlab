@@ -177,7 +177,6 @@ def infer_date(ambiguous, mod_time_epoch):
         a six or eight digit date input of any (reasonable) similar format,
         plus the modification time in seconds since Unix epoch.
     """
-    output_date_format = '%Y%m%d'
     if len(ambiguous) == 6:
         year_case = 'y'
     else:
@@ -197,22 +196,22 @@ def infer_date(ambiguous, mod_time_epoch):
     possible_dates = filter(lambda dt: dt <= mod_date, possible_dates)
 
     if len(possible_dates) == 1:
-        return possible_dates[0].strftime(output_date_format)
+        return possible_dates[0]
 
     possible_dates = filter(lambda dt: mod_date - dt < datetime.timedelta(30), possible_dates)
 
     if len(possible_dates) == 1:
-        return possible_dates[0].strftime(output_date_format)
+        return possible_dates[0]
 
     possible_dates = list(set(possible_dates))
 
     if len(possible_dates) == 1:
-        return possible_dates[0].strftime(output_date_format)
+        return possible_dates[0]
 
     possible_dates = filter(lambda dt: mod_date == dt, possible_dates)
 
     if len(possible_dates) == 1:
-        return possible_dates[0].strftime(output_date_format)
+        return possible_dates[0]
 
 #########################
 ######## Class ##########
@@ -271,11 +270,12 @@ class SourceFile(File):
         self.copied = False
         self.destination = destination
     @classmethod
-    def infer_destination(cls, path):
+    def infer_destination(cls, path, target_path):
         """
             Infers the path of the destination given the source path.
             Returns a SourceFile object with the appropriate destination.
         """
+        output_date_format = '%Y%m%d'
         root, basename = os.path.split(path)
         path_time = os.path.getmtime(path)
         match_to_re = lambda r: r.match(basename, 1)
@@ -293,7 +293,8 @@ class SourceFile(File):
             raise ValueError("File name has no date: {}\n".format(path))
             return None
         fst, snd = basename.split(date_str)
-        destination = fst + std_date + snd
+        std_date_str = std_date.strftime(output_date_format)
+        destination_base = os.path.join(target_path, str(std_date.year), str(std_date.month), fst + std_date + snd
         return cls(path, destination)
 
 
