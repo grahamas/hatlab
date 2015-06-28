@@ -110,9 +110,10 @@ def ensure_organized_record_completeness(organized_files, log=sys.stdout):
             organized_files[f] = OrganizedFile(source_path=UNKNOWN_PATH,path=f)
     return organized_files
 
-def write_record_from_source_files(source_files, record_fname=RECORD_FNAME):
+def write_record_from_source_files(source_files, target_dir, record_fname=RECORD_FNAME):
     new_record = {k:v.destination for k,v in source_files.iteritems()}
-    with sop.open_no_clobber(record_fname, 'w') as f:
+    record_path = os.path.join(target_dir, record_fname)
+    with sop.open_no_clobber(record_path, 'w') as f:
         json.dump(new_record, f)
 
 def parse_record(record, source_files={}, organized_files={}, log=sys.stdout):
@@ -168,7 +169,7 @@ def from_new_record(source_monkey_dirs, target_monkey_dir, record_fname=RECORD_F
                 if monkey_path not in source_files:
                     print 'New file: {}\n'.format(monkey_path)
                     source_files[monkey_path] = SourceFile.infer_destination(monkey_path)
-    write_record_from_source_files(source_files)
+    write_record_from_source_files(source_files, target_monkey_dir)
     return source_files, organized_files
 
 def infer_date(ambiguous, mod_time_epoch):

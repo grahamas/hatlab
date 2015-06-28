@@ -124,9 +124,12 @@ def get_highest_version_num(full_path):
         in the very particular (and stupid) numbering scheme I am using.
     """
     path, filename = os.path.split(full_path)
-    highest_version_num = max(map(
-        lambda f: get_version_num(full_path, os.path.join(path,f)), 
-        os.listdir(path)))
+    try:
+        highest_version_num = max(map(
+            lambda f: get_version_num(full_path, os.path.join(path,f)), 
+            os.listdir(path)))
+    except ValueError:
+        highest_version_num = -1
     return highest_version_num
 
 def get_highest_version_filename(full_path):
@@ -138,7 +141,10 @@ def get_highest_version_filename(full_path):
     if highest_version_num > -1:
         return generate_version_path(full_path, highest_version_num)
     else:
-        return None        
+        if os.path.isfile(full_path):
+            return full_path
+        else:
+            return None        
 
 def gen_next_numeric_filename(full_path):
     """
@@ -163,7 +169,7 @@ def create_local_backup(full_path, backup_dir=DEFAULT_BACKUP):
     """
     path, filename = os.path.split(full_path)
     backup_path = os.path.join(path, backup_dir)
-    if not isdir(backup_path):
+    if not os.path.isdir(backup_path):
         os.mkdir(backup_path)
     full_backup_path = gen_next_numeric_filename(os.path.join(backup_path, filename))
     shutil.move(full_path, full_backup_path)
