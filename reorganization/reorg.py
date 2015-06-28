@@ -295,7 +295,7 @@ class SourceFile(File):
             return None
         fst, snd = basename.split(date_str)
         std_date_str = std_date.strftime(output_date_format)
-        destination_base = os.path.join(target_path, str(std_date.year), str(std_date.month), fst + std_date + snd
+        destination_base = os.path.join(target_path, str(std_date.year), str(std_date.month), fst + std_date + snd)
         return cls(path, destination)
 
 
