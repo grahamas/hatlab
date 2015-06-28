@@ -168,7 +168,7 @@ def from_new_record(source_monkey_dirs, target_monkey_dir, record_fname=RECORD_F
             for monkey_path in full_monkey_paths:
                 if monkey_path not in source_files:
                     print 'New file: {}\n'.format(monkey_path)
-                    source_files[monkey_path] = SourceFile.infer_destination(monkey_path)
+                    source_files[monkey_path] = SourceFile.infer_destination(monkey_path, target_monkey_dir)
     write_record_from_source_files(source_files, target_monkey_dir)
     return source_files, organized_files
 
