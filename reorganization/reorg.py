@@ -13,7 +13,7 @@ import os
 import sys
 import time
 import itertools
-import shutil
+import myshutil
 import json
 import argparse
 import datetime
@@ -110,11 +110,17 @@ def ensure_organized_record_completeness(organized_files, log=sys.stdout):
             organized_files[f] = OrganizedFile(source_path=UNKNOWN_PATH,path=f)
     return organized_files
 
-def write_record_from_source_files(source_files, target_dir, record_fname=RECORD_FNAME):
+def old_write_record_from_source_files(source_files, target_dir, record_fname=RECORD_FNAME):
     new_record = {k:v.destination for k,v in source_files.iteritems()}
     record_path = os.path.join(target_dir, record_fname)
     with sop.open_no_clobber(record_path, 'w') as f:
         json.dump(new_record, f)
+
+def write_record(record_dict, target_dir, record_fname):
+    output = {key: val.to_dict() for key,val in record_dict.iteritems()}
+    record_path = os.path.join(target_dir, record_fname)
+    with sop.open_no_clobber(record_path, 'w') as f:
+        json.dump(output, f)
 
 def parse_record(record, source_files={}, organized_files={}, log=sys.stdout):
     source_files = add_record_to_source_files(record, source_files, log)
@@ -169,7 +175,7 @@ def from_new_record(source_monkey_dirs, target_monkey_dir, record_fname=RECORD_F
                 if monkey_path not in source_files:
                     print 'New file: {}\n'.format(monkey_path)
                     source_files[monkey_path] = SourceFile.infer_destination(monkey_path, target_monkey_dir)
-    write_record_from_source_files(source_files, target_monkey_dir)
+    old_write_record_from_source_files(source_files, target_monkey_dir)
     return source_files, organized_files
 
 def infer_date(ambiguous, mod_time_epoch):
@@ -214,6 +220,39 @@ def infer_date(ambiguous, mod_time_epoch):
     if len(possible_dates) == 1:
         return possible_dates[0]
 
+def copy_files(source_files, target_files, log=sys.stdout):
+    size_left = 0
+    for source_path in source_files:
+        size_left += os.path.getsize(source_path)
+    log.write('Total movement: {} GB'.format(str(size_left / 1000000000.0)))
+    for source_path, source in source_files.iteritems():
+        destination_path = source.destination
+        file_size = os.path.getsize(source_path)
+        if destination_path not in target_files:
+            target_files[destination_path] = OrganizedFile(source_path, destination_path)
+            destination = target_files[destination_path]
+            if destination.exists:
+                destination.origin = UNKNOWN_PATH
+        else:
+            destination = target_files[destination_path]
+        if os.path.isfile(destination_path):
+            destination.source_paths.append(source_path)
+        else:
+            if destination.origin != "":
+                raise Exception("THIS SHOULD NEVER HAPPEN")
+            else:
+                destination.origin = source_path
+            log.write("{} => {}\n".format(source_path, destination_path))
+            log.write("Moving {} GB\n".format(str(file_size / 1000000000.0)))
+            if not os.path.isdir(os.path.dirname(destination_path)):
+                os.makedirs(os.path.dirname(destination_path))
+            myshutil.copy2(source_path, destination_path)
+            log.write("... done.\n")
+        size_left -= file_size
+        log.write("{} GB remaining.\n".format(str(size_left/1000000000.0)))
+
+
+
 #########################
 ######## Class ##########
 
@@ -245,11 +284,19 @@ class File(object):
             return self.sha
     def __len__(self):
         return os.path.getsize(self.path)
+    def to_dict(self):
+        ret = {}
+        ret['exists'] = self.exists
+        ret['path'] = self.path
+        ret['sha'] = self.sha
+        ret['hashedtime'] = self.hashedtime
+        return ret
 
 class OrganizedFile(File):
     def __init__(self, source_path, path):
         super(OrganizedFile, self).__init__(path)
         self.source_paths = [source_path]
+        self.origin = ""
     def sources_hash_equal(self, all_sources, force_check=False):
         if len(self.sources) == 1:
             return True
@@ -264,12 +311,22 @@ class OrganizedFile(File):
         else:
             self.source_paths.append(source)
             return True
+    def to_dict(self):
+        ret = super(OrganizedFile, self).to_dict()
+        ret['source_paths'] = self.source_paths
+        ret['origin'] = self.origin
+        return ret
 
 class SourceFile(File):
     def __init__(self, path, destination):
         super(SourceFile, self).__init__(path)
         self.copied = False
         self.destination = destination
+    def to_dict(self):
+        ret = super(SourceFile,self).to_dict()
+        ret['copied'] = self.copied
+        ret['destination'] = self.destination
+        return ret
     @classmethod
     def infer_destination(cls, path, target_path):
         """
@@ -279,15 +336,15 @@ class SourceFile(File):
         output_date_format = '%Y%m%d'
         root, basename = os.path.split(path)
         path_time = os.path.getmtime(path)
-        match_to_re = lambda r: r.match(basename, 1)
+        match_to_re = lambda r: r.search(basename)
         matches = [x for x in map(match_to_re, DATE_RES) if x is not None]
-        remove_non_numerics = lambda match: NON_NUMERIC_RE.sub('',match.group())
-        date_strs = map(remove_non_numerics, matches)
+        remove_non_numerics = lambda match: NON_NUMERIC_RE.sub('',match)
         std_date = None
+        date_strs = map(lambda f: f.group(), matches)
         print datetime.datetime.fromtimestamp(path_time).strftime('%Y%m%d')
+        print date_strs
         for date_str in date_strs:
-            print date_str
-            std_date = infer_date(date_str, path_time)
+            std_date = infer_date(remove_non_numerics(date_str), path_time)
             print std_date
             if std_date is not None: break
         if std_date is None:
@@ -295,7 +352,8 @@ class SourceFile(File):
             return None
         fst, snd = basename.split(date_str)
         std_date_str = std_date.strftime(output_date_format)
-        destination = os.path.join(target_path, str(std_date.year), str(std_date.month), fst + std_date_str + snd)
+        pad = lambda num: num if len(num) == 2 else '0' + num
+        destination = os.path.join(target_path, str(std_date.year), pad(str(std_date.month)), fst + std_date_str + snd)
         return cls(path, destination)
 
 
@@ -383,7 +441,9 @@ else:
     source_files, organized_files = from_new_record(source_monkey_dirs, target_monkey_dir)
 
 if full_run:
+    write_record(source_files, target_monkey_dir, record_fname='source_record.json')
     copy_files(source_files, organized_files)
+    write_record(organized_files, target_monkey_dir, record_fname='organized_record.json')
 
 #########################
 ######## Action #########
