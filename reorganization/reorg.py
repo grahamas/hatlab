@@ -75,12 +75,8 @@ def add_record_to_organized_files(record, organized_files, log=sys.stdout):
 def fix_path(path):
     new_path = sop.split_path(path)
     if new_path[0] == '':
-        # unix path
-        #print 'Found UNIX path. Attempting to fix.'
         new_path = new_path[3:] # BAAAAAAD
     elif ':' in new_path[0]:
-        # windows path
-        #print 'Found bad WINDOWS path. Attempting to fix.'
         new_path = new_path[1:] # BAAAAAAD
     else:
         raise ValueError("Ambiguous (or relative) path: " + path)
@@ -260,39 +256,83 @@ def copy_files(source_files, target_files, log=sys.stdout):
             size_left -= file_size
             log.write("{} GB remaining.\n".format(str(size_left/1000000000.0)))
 
-def verification_copy(source, target, checker, log=sys.stdout, only_exts=None):
-    pass
+def double_check(file_obj, metric):
+    # This function is useful because hashing is so unlikely to 
+    # give the same incorrect result twice.
+    previous_result = metric(file_obj)
+    current_result = metric(file_obj, force=True)
+    while previous_result is not next_result:
+        previous_result = current_result
+        current_result = metric(file_obj, force=True)
+    return current_result
 
-def first_pass_check_size(source_files, log=sys.stdout, only_exts=None):
-    ##### Temporarily ignore origin variable
-    to_copy = []
-    def size_checker(source_path, target_path, log=sys.stdout):
-        if not os.path.isfile(source_path):
-            log.write("Source does not exist: {}".format(source_path))
+def verification_copy(source, target, metric, log=sys.stdout, only_exts=None):
+    attempt_limit = 10
+    source_path = source.path
+    target_path = target.path
+    for count in range(attempt_limit):
+        log.write("Attempt {} of {} to write {}".format(str(count), str(attempt_limit), source_path))
+        shutil.copy2(source, target)
+        if metric(source) == metric(target):
             return True
-        if not os.path.isfile(target_path):
-            log.write("Target does not exist: {}".format(target_path))
-            return False
-        return os.path.getsize(source_path) == os.path.getsize(target_path)
+    return False
+
+def fix_inequal_sources(source_files, organized_files, inequal_sources, metric, log=sys.stdout, only_exts=None):
+    to_be_fixed = [OrganizedFileBeingFixed(o_file) for o_file in 
+                    [organized_files[path] for path in inequal_sources]
+                    if o_file.origin is UNKNOWN_PATH]
+    for f in to_be_fixed:
+        num_partitions = f.partition_sources(source_files, metric)
+        if num_partitions > 1:
+            log.write("Different sources have same target!\n")
+            log.write("Automatic resolution of this problem is not yet implemented.\n")
+            log.write("Details follow:\n")
+            log.write("\tDestination: {}".format(f.path))
+            log.write("\tSources: {}".format(f.sources))
+            log.write("\tEquivalence Classes: {}".format(f.eq_classes))
+            raise ValueError("Different sources have same target! See log.")
+
+def verify_organized_files(source_files, organized_files, metric, log=sys.stdout, only_exts=None):
+    inequal_sources = []
+    equal_sources = []
+    for organized_path, organized_file in organized_files.iteritems():
+        ext = os.path.splitext(organized_path)[1]
+        if only_exts is not None and ext not in only_exts:
+            continue
+        if not organized_file.sources_equal(source_files, metric):
+            inequal_sources.append(organized_path)
+        else:
+            equal_sources.append(organized_path)
+    fix_inequal_sources(source_files, organized_files, inequal_sources, metric)
+    for organized_path in equal_sources + inequal_sources:
+        organized_file = organized_files[organized_path]
+        if not organized_file.first_source_equal(source_files, metric):
+            verification_copy(source_files[organized_files.source_paths[0]], organized_file, metric, log=log)
+
+def verify_source_files(source_files, organized_files, metrc, log=sys.stdout, only_exts=None):
+    #### NOT DONE #####
+    to_copy = []
     for source_path, source in source_files.iteritems():
         target_path = source.destination
-        if not size_checker(source_path, target_path, log):
+        if not checker(source_path, target_path, log):
             if only_exts is not None
                 if os.path.splitext(source_path)[1] in only_exts:
                     to_copy.append(source_path)
             else:
                 to_copy.append(source_path)
     log.write("There are {} problems to fix.".format())
-
-
-
+    
 def check_integrity(source_files, organized_files, log=sys.stdout, only_exts=None):
     # FIRST VERIFY ORGANIZED_FILES SOURCES!!!!!!
+    verify_organized_files(source_files, organized_files, log=sys.stdout, only_exts=None)
 
-    first_pass_check_size(source_files)
+    def size_metric(f, force='Irrelevant'): 
+        return os.path.getsize(f.path) if os.path.isfile(f.path) else 0
+    def hash_metric(f, force=False):
+        return f.hash(force=force)
 
-    for source in source_files.values():
-        source.hash()
+    verify_organized_files(source_files, organized_files, size_metric, log=log, only_exts=only_exts)
+    #check_hashes(source_files, organized_files)
 
 
 #########################
@@ -305,24 +345,24 @@ class File(object):
         self.path = path
         self.sha = None
         self.hashedtime = 0
-    def hash(self, force_check=False):
+    def hash(self, force=False, log=sys.stdout):
         """
             Hashes this file, using the hash function in SOP.
 
             PRINTS OUT STATUS
         """
         if self.hashedtime < os.path.getmtime(self.path):
-            force_check = True
-        if self.sha and not force_check:
+            force = True
+        if self.sha and not force:
             return self.sha
         else:
             bname = os.path.basename(self.path)
-            print "Hashing " + bname
+            log.write("Hashing " + bname)
             start = timeit.default_timer()
             with open(self.path,'rb') as f:
                 self.sha = sop.hashfile(f)
             elapsed = timeit.default_timer() - start
-            print "Done. Time: " + str(elapsed) + " for " + bname
+            log.write("Done. Time: " + str(elapsed) + " for " + bname)
             self.hashedtime = time.gmtime()
             return self.sha
     def __len__(self):
@@ -345,14 +385,14 @@ class OrganizedFile(File):
         super(OrganizedFile, self).__init__(path)
         self.source_paths = [source_path]
         self.origin = ""
-    def sources_hash_equal(self, all_sources, force_check=False):
+    def sources_equal(self, all_sources, metric, force=False):
         if len(self.sources) == 1:
             return True
         source_objs = map(lambda source_path: all_sources[source_path],self.source_paths)
-        return reduce(operator.eq, map(lambda source: source.hash(force_check), 
-            source_objs))
-    def first_source_hash_equal(self, all_sources, force_check=False):
+        return reduce(lambda a,b: metric(a) == metric(b), source_objs)
+    def first_source_equal(self, all_sources, force=False):
         first_source = all_sources[self.source_paths[0]]
+        return metric(first_source) == metric(self)
     def add_source(self, source):
         if source in self.source_paths:
             return False
@@ -419,6 +459,45 @@ class SourceFile(File):
         pad = lambda num: num if len(num) == 2 else '0' + num
         destination = os.path.join(target_path, str(std_date.year), pad(str(std_date.month)), fst + std_date_str + snd)
         return cls(path, destination)
+
+class OrganizedFileBeingFixed(OrganizedFile):
+    def __init__(self, organized_file, metric):
+        path = organized_file['path']
+        source_paths = organized_file['source_paths']
+        super(OrganizedFileBeingFixed, self).__init__(source_paths[0], path)
+        self.original = organized_file
+        self.source_paths = source_paths
+        self.origin = organized_file['origin']
+        self.eq_classes = {}
+        self.my_class = UNKNOWN_PATH
+        self.metric_value = double_check(self, metric)
+    def partition_sources(self, source_files, metric, log=sys.stdout):
+        #sources = map(lambda path: source_files[path], self.source_paths)
+        #sources_in_metric = map(lambda f: double_check(f, metric), sources)
+        for path in source_paths:
+            source = source_files[path]
+            source_metric = double_check(source, metric)
+            found_eq_class = False
+            for eq_path, eq_dict in self.eq_classes.iteritems():
+                if eq_dict['eq_metric'] == source_metric:
+                    eq_dict['eq_source_paths'].append(path)
+                    found_eq_class = True
+            if not found_eq_class:
+                eq_dict = {}
+                eq_dict['eq_metric'] = source_metric
+                eq_dict['eq_sources'] = [path]
+                self.eq_classes[path] = eq_dict
+                if source_metric == self.metric_value:
+                    self.my_class = path
+        if len(self.eq_classes) == 1:
+            if self.my_class is UNKNOWN_PATH:
+                path = self.eq_classes.keys()[0]
+                eq_class = self.eq_classes[path]
+                verification_copy(source_files[path], self.original, metric, log)
+        return len(self.eq_classes)
+
+
+
 
 
 #########################
