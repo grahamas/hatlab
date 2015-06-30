@@ -8,6 +8,8 @@
 #### E.G. /media/nicholab
 #### GOD HELP US ALL
 
+#### THIS ASSUMPTION IS MADE IN fix_path
+
 import re
 import os
 import sys
@@ -26,6 +28,9 @@ RECORD_FNAME = 'record.json' #oldname
 UNPDICT_FNAME = 'unpdict.json' #newname
 UNKNOWN_PATH = 'UNKNOWN'
 
+SOURCE_RECORD_FNAME = 'source_record.json'
+ORGANIZED_RECORD_FNAME = 'organized_record.json'
+
 DATE_RE_STRS = [r'[0-9]{8}', 
     r'[0-9]{6}', 
     r'\d{2}_\d{2}_\d{2}',
@@ -39,8 +44,9 @@ NON_NUMERIC_RE = re.compile(r'[^\d]+')
 MIN_DATE = datetime.datetime.strptime('20120101','%Y%m%d').date()
 MAX_DATE = datetime.datetime.now().date()
 
-########################
-##### Functions ########
+#########################
+####### Functions #######
+#########################
 
 def add_record_to_source_files(record, source_files, log=sys.stdout):
     for source, destination in record.iteritems():
@@ -140,27 +146,24 @@ def validate_record(monkey_path, record_fname=RECORD_FNAME, log=sys.stdout):
         write_record_from_source_files(source_files)
     return verify_destinations_exist(source_files, organized_files, log)
 
-def get_record(monkey_path, record_fname=RECORD_FNAME):
+def from_existing_record(monkey_path, source_record_fname=SOURCE_RECORD_FNAME, organized_record_fname=ORGANIZED_RECORD_FNAME):
+
+    return (get_record(target_monkey_dir, SourceFile, source_record_fname), 
+            get_record(target_monkey_dir, OrganizedFile, organized_record_fname))
+
+def get_record(monkey_path, class_name, record_fname):
     record_path = os.path.join(monkey_path, record_fname)
     def open_record(path):
             with open(path, 'r') as record_file:
                 record = json.load(record_file)
-                return {fix_path(key):fix_path(value) for (key,value) in record.iteritems()}
-    if BAD_RECORDS:
-        all_record_paths = sop.get_all_versions(record_path)
-        all_records = map(open_record, all_record_paths)
-        return all_records
+                return {fix_path(key):class_name.from_dict(value) for (key,value) in record.iteritems()}
     else:
         record = open_record(record_path)
         return record
 
-def from_old_record(monkey_path, record_fname=RECORD_FNAME):
-
-    return parse_record(get_record(monkey_path, record_fname))
-
-def from_new_record(source_monkey_dirs, target_monkey_dir, record_fname=RECORD_FNAME):
-    current_record = get_record(target_monkey_dir, record_fname)
-    source_files, organized_files = parse_record(current_record)
+def from_new_record(source_monkey_dirs, target_monkey_dir, source_record_fname=SOURCE_RECORD_FNAME, organized_record_fname=ORGANIZED_RECORD_FNAME):
+    source_files = get_record(target_monkey_dir, SourceFile, source_record_fname)
+    organized_files = get_record(target_monkey_dir, OrganizedFile, organized_record_fname)
     for source_dir in source_monkey_dirs:
         for root, dirs, files in os.walk(source_dir):
             exclude_me = False
@@ -257,10 +260,44 @@ def copy_files(source_files, target_files, log=sys.stdout):
             size_left -= file_size
             log.write("{} GB remaining.\n".format(str(size_left/1000000000.0)))
 
+def verification_copy(source, target, checker, log=sys.stdout, only_exts=None):
+    pass
+
+def first_pass_check_size(source_files, log=sys.stdout, only_exts=None):
+    ##### Temporarily ignore origin variable
+    to_copy = []
+    def size_checker(source_path, target_path, log=sys.stdout):
+        if not os.path.isfile(source_path):
+            log.write("Source does not exist: {}".format(source_path))
+            return True
+        if not os.path.isfile(target_path):
+            log.write("Target does not exist: {}".format(target_path))
+            return False
+        return os.path.getsize(source_path) == os.path.getsize(target_path)
+    for source_path, source in source_files.iteritems():
+        target_path = source.destination
+        if not size_checker(source_path, target_path, log):
+            if only_exts is not None
+                if os.path.splitext(source_path)[1] in only_exts:
+                    to_copy.append(source_path)
+            else:
+                to_copy.append(source_path)
+    log.write("There are {} problems to fix.".format())
+
+
+
+def check_integrity(source_files, organized_files, log=sys.stdout, only_exts=None):
+    # FIRST VERIFY ORGANIZED_FILES SOURCES!!!!!!
+
+    first_pass_check_size(source_files)
+
+    for source in source_files.values():
+        source.hash()
 
 
 #########################
 ######## Class ##########
+#########################
 
 class File(object):
     def __init__(self, path):
@@ -297,6 +334,11 @@ class File(object):
         ret['sha'] = self.sha
         ret['hashedtime'] = self.hashedtime
         return ret
+    @classmethod
+    def populate_from_dict(cls, obj, dct):
+        obj.sha = dct['sha']
+        obj.hashedtime = dct['hashedtime']
+        return obj
 
 class OrganizedFile(File):
     def __init__(self, source_path, path):
@@ -322,6 +364,16 @@ class OrganizedFile(File):
         ret['source_paths'] = self.source_paths
         ret['origin'] = self.origin
         return ret
+    @classmethod
+    def from_dict(cls, dct):
+        new_self = cls(fix_path(dct['source_paths'][0]), fix_path(dct['path']))
+        new_self = File.populate_from_dict(new_self, dct)
+        new_self.source_paths = map(fix_path, dct['source_paths'])
+        origin = dct['origin']
+        if origin is not "" and origin is not UNKNOWN_PATH
+            origin = dct['origin']
+        new_self.origin = origin
+        return new_self
 
 class SourceFile(File):
     def __init__(self, path, destination):
@@ -333,6 +385,12 @@ class SourceFile(File):
         ret['copied'] = self.copied
         ret['destination'] = self.destination
         return ret
+    @classmethod
+    def from_dict(cls, dct):
+        new_self = cls(fix_path(dct['path']), fix_path(dct['destination']))
+        new_self = File.populate_from_dict(new_self, dct)
+        new_self.copied = dct['copied']
+        return new_self
     @classmethod
     def infer_destination(cls, path, target_path):
         """
@@ -364,7 +422,7 @@ class SourceFile(File):
 
 
 #########################
-######## Setup ##########
+######### Setup #########
 #########################
 
 parser = argparse.ArgumentParser()
@@ -384,8 +442,6 @@ parser.add_argument('--just_validate_records', action='store_true',
     will only validate existing record.""")
 parser.add_argument('--root', action='store', required=True,
     help="Indicates the shared drive root (e.g. Z:)")
-parser.add_argument('--bad_records', action='store_true',
-    help="Use this to reconcile old records.")
 parser.add_argument('--fix_records', action='store_true', default=False)
 parser.add_argument('--exclude_dirs', action='store', nargs='+',
     help='Exclude directories containing this string.')
@@ -396,7 +452,6 @@ full_run = args.full_run
 use_existing_record = args.use_existing_record
 just_validate_records = args.just_validate_records
 root = args.root
-BAD_RECORDS = args.bad_records
 FIX_RECORDS = args.fix_records
 EXCLUDE_STRS = args.exclude_dirs
 
@@ -442,18 +497,46 @@ if just_validate_records:
 source_monkey_dirs = map(lambda d: os.path.join(d, monkey_name), 
     source_dirs)
 if use_existing_record:
-    source_files, organized_files = from_old_record(target_monkey_dir)
+    source_files, organized_files = from_existing_record(target_monkey_dir)
 else:
     source_files, organized_files = from_new_record(source_monkey_dirs, target_monkey_dir)
 
 if full_run:
-    write_record(source_files, target_monkey_dir, record_fname='source_record.json')
+    write_record(source_files, target_monkey_dir, record_fname=SOURCE_RECORD_FNAME)
     copy_files(source_files, organized_files)
-    write_record(organized_files, target_monkey_dir, record_fname='organized_record.json')
+    write_record(organized_files, target_monkey_dir, record_fname=ORGANIZED_RECORD_FNAME)
+
+if check_integrity:
+    check_integrity(source_files, organized_files)
+    write_record(source_files, target_monkey_dir, record_fname=SOURCE_RECORD_FNAME)
+    write_record(organized_files, target_monkey_dir, record_fname=ORGANIZED_RECORD_FNAME)
 
 #########################
-######## Action #########
+####### OLD STUFF #######
 #########################
+
+# def old_get_record(monkey_path, record_fname=RECORD_FNAME):
+#     record_path = os.path.join(monkey_path, record_fname)
+#     def open_record(path):
+#             with open(path, 'r') as record_file:
+#                 record = json.load(record_file)
+#                 return {fix_path(key):fix_path(value) for (key,value) in record.iteritems()}
+#     if BAD_RECORDS:
+#         all_record_paths = sop.get_all_versions(record_path)
+#         all_records = map(open_record, all_record_paths)
+#         return all_records
+#     else:
+#         record = open_record(record_path)
+#         return record
+
+# def old_from_old_record(monkey_path, record_fname=RECORD_FNAME):
+#     # deprecated
+#     return parse_record(get_record(monkey_path, record_fname))
+
+
+################################
+######## OLD OLD STUFF #########
+################################
 
 # remap = dict();
 # date = re.compile(r'[0-9]{8}')
