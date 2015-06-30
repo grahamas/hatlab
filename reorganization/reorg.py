@@ -222,10 +222,14 @@ def infer_date(ambiguous, mod_time_epoch):
 
 def copy_files(source_files, target_files, log=sys.stdout):
     size_left = 0
-    for source_path in source_files:
-        size_left += os.path.getsize(source_path)
+    for source_path,source in source_files.iteritems():
+        if source.exists and not os.path.isfile(source.destination):
+            size_left += os.path.getsize(source_path)
     log.write('Total movement: {} GB'.format(str(size_left / 1000000000.0)))
     for source_path, source in source_files.iteritems():
+        if not source.exists:
+            log.write("DOES NOT EXIST:\n\t{}".format(source_path))
+            continue
         destination_path = source.destination
         file_size = os.path.getsize(source_path)
         if destination_path not in target_files:
@@ -233,10 +237,12 @@ def copy_files(source_files, target_files, log=sys.stdout):
             destination = target_files[destination_path]
             if destination.exists:
                 destination.origin = UNKNOWN_PATH
+                continue
         else:
             destination = target_files[destination_path]
         if os.path.isfile(destination_path):
             destination.source_paths.append(source_path)
+            continue
         else:
             if destination.origin != "":
                 raise Exception("THIS SHOULD NEVER HAPPEN")
@@ -248,8 +254,8 @@ def copy_files(source_files, target_files, log=sys.stdout):
                 os.makedirs(os.path.dirname(destination_path))
             myshutil.copy2(source_path, destination_path)
             log.write("... done.\n")
-        size_left -= file_size
-        log.write("{} GB remaining.\n".format(str(size_left/1000000000.0)))
+            size_left -= file_size
+            log.write("{} GB remaining.\n".format(str(size_left/1000000000.0)))
 
 
 
