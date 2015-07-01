@@ -153,9 +153,8 @@ def get_record(monkey_path, class_name, record_fname):
             with open(path, 'r') as record_file:
                 record = json.load(record_file)
                 return {fix_path(key):class_name.from_dict(value) for (key,value) in record.iteritems()}
-    else:
-        record = open_record(record_path)
-        return record
+    record = open_record(record_path)
+    return record
 
 def from_new_record(source_monkey_dirs, target_monkey_dir, source_record_fname=SOURCE_RECORD_FNAME, organized_record_fname=ORGANIZED_RECORD_FNAME):
     source_files = get_record(target_monkey_dir, SourceFile, source_record_fname)
@@ -315,7 +314,7 @@ def verify_source_files(source_files, organized_files, metrc, log=sys.stdout, on
     for source_path, source in source_files.iteritems():
         target_path = source.destination
         if not checker(source_path, target_path, log):
-            if only_exts is not None
+            if only_exts is not None:
                 if os.path.splitext(source_path)[1] in only_exts:
                     to_copy.append(source_path)
             else:
@@ -410,7 +409,7 @@ class OrganizedFile(File):
         new_self = File.populate_from_dict(new_self, dct)
         new_self.source_paths = map(fix_path, dct['source_paths'])
         origin = dct['origin']
-        if origin is not "" and origin is not UNKNOWN_PATH
+        if origin is not "" and origin is not UNKNOWN_PATH:
             origin = dct['origin']
         new_self.origin = origin
         return new_self
