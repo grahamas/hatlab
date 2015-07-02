@@ -48,7 +48,7 @@ MAX_DATE = datetime.datetime.now().date()
 ####### Functions #######
 #########################
 
-def organized_files_from_source_files(source_files, organized_files={}):
+def organized_files_from_source_files(source_files, organized_files={}, log=sys.stdout):
     for source_path, source in source_files.iteritems():
         destination = source.destination
         if destination in organized_files.keys():
@@ -134,12 +134,12 @@ def get_record(monkey_path, class_name, record_fname):
     record = open_record(record_path)
     return record
 
-def from_new_record(source_monkey_dirs, target_monkey_dir, source_record_fname=SOURCE_RECORD_FNAME, organized_record_fname=ORGANIZED_RECORD_FNAME):
+def from_new_record(source_monkey_dirs, target_monkey_dir, source_record_fname=SOURCE_RECORD_FNAME, organized_record_fname=ORGANIZED_RECORD_FNAME, log=sys.stdout):
     source_files = get_record(target_monkey_dir, SourceFile, source_record_fname)
     if os.path.isfile(os.path.join(target_monkey_dir, organized_record_fname)):
         organized_files = get_record(target_monkey_dir, OrganizedFile, organized_record_fname)
     else:
-        organized_files = organized_files_from_source_files(source_files)
+        organized_files = organized_files_from_source_files(source_files, log=log)
     for source_dir in source_monkey_dirs:
         for root, dirs, files in os.walk(source_dir):
             exclude_me = False
