@@ -48,7 +48,7 @@ MAX_DATE = datetime.datetime.now().date()
 ####### Functions #######
 #########################
 
-def add_record_to_source_files(record, source_files, log=sys.stdout):
+def old_add_record_to_source_files(record, source_files, log=sys.stdout):
     for source, destination in record.iteritems():
         if source in source_files.keys():
             log.write('Source moved twice: {}\n'.format(source))
@@ -60,9 +60,21 @@ def add_record_to_source_files(record, source_files, log=sys.stdout):
             source_files[source] = SourceFile(source, destination)
     return source_files
 
-def add_record_to_organized_files(record, organized_files, log=sys.stdout):
+def old_add_record_to_organized_files(record, organized_files, log=sys.stdout):
     for source, destination in record.iteritems():
         if destination in organized_files.keys():
+            log.write('Destination with multiple sources: {}\n'.format(destination))
+            if not organized_files[destination].add_source(source):
+                log.write('Destination has same source:\n')
+                log.write('\t DESTINATION: {}\n'.format(destination))
+                log.write('\t SOURCE: {}\n'.format(source))
+        else:
+            organized_files[destination] = OrganizedFile(source, destination)
+    return organized_files
+
+def add_record_to_organized_files(record, organized_files, log=sys.stdout):
+    for source_path, source in record.iteritems():
+        if source.destination in organized_files.keys():
             log.write('Destination with multiple sources: {}\n'.format(destination))
             if not organized_files[destination].add_source(source):
                 log.write('Destination has same source:\n')
@@ -124,9 +136,9 @@ def write_record(record_dict, target_dir, record_fname):
     with sop.open_no_clobber(record_path, 'w') as f:
         json.dump(output, f)
 
-def parse_record(record, source_files={}, organized_files={}, log=sys.stdout):
-    source_files = add_record_to_source_files(record, source_files, log)
-    organized_files = add_record_to_organized_files(record, organized_files, log)
+def old_parse_record(record, source_files={}, organized_files={}, log=sys.stdout):
+    source_files = old_add_record_to_source_files(record, source_files, log)
+    organized_files = old_add_record_to_organized_files(record, organized_files, log)
     return source_files, organized_files
 
 def validate_record(monkey_path, record_fname=RECORD_FNAME, log=sys.stdout):
