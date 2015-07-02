@@ -213,7 +213,7 @@ def copy_files(source_files, target_files, log=sys.stdout):
     log.write('Total movement: {} GB'.format(str(size_left / 1000000000.0)))
     for source_path, source in source_files.iteritems():
         if not source.exists:
-            log.write("DOES NOT EXIST:\n\t{}".format(source_path))
+            log.write("DOES NOT EXIST:\n\t{}\n".format(source_path))
             continue
         destination_path = source.destination
         file_size = os.path.getsize(source_path)
