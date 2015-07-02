@@ -50,14 +50,15 @@ MAX_DATE = datetime.datetime.now().date()
 
 def organized_files_from_source_files(source_files, organized_files={}):
     for source_path, source in source_files.iteritems():
-        if source.destination in organized_files.keys():
+        destination = source.destination
+        if destination in organized_files.keys():
             log.write('Destination with multiple sources: {}\n'.format(destination))
-            if not organized_files[destination].add_source(source):
+            if not organized_files[destination].add_source(source_path):
                 log.write('Destination has same source:\n')
                 log.write('\t DESTINATION: {}\n'.format(destination))
-                log.write('\t SOURCE: {}\n'.format(source))
+                log.write('\t SOURCE: {}\n'.format(source_path))
         else:
-            organized_files[destination] = OrganizedFile(source, destination)
+            organized_files[destination] = OrganizedFile(source_path, destination)
     return organized_files
 
 def fix_path(path):
