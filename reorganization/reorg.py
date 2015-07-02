@@ -49,7 +49,7 @@ MAX_DATE = datetime.datetime.now().date()
 #########################
 
 def organized_files_from_source_files(source_files, organized_files={}):
-    for source_path, source in record.iteritems():
+    for source_path, source in source_files.iteritems():
         if source.destination in organized_files.keys():
             log.write('Destination with multiple sources: {}\n'.format(destination))
             if not organized_files[destination].add_source(source):
