@@ -48,31 +48,7 @@ MAX_DATE = datetime.datetime.now().date()
 ####### Functions #######
 #########################
 
-def old_add_record_to_source_files(record, source_files, log=sys.stdout):
-    for source, destination in record.iteritems():
-        if source in source_files.keys():
-            log.write('Source moved twice: {}\n'.format(source))
-            if source_files[source].destination != destination:
-                log.write('ERROR: Two destinations!\n')
-                log.write('\t DESTINATION: {}\n'.format(source_files[source].destination))
-                log.write('\t DESTINATION: {}\n'.format(destination))
-        else:
-            source_files[source] = SourceFile(source, destination)
-    return source_files
-
-def old_add_record_to_organized_files(record, organized_files, log=sys.stdout):
-    for source, destination in record.iteritems():
-        if destination in organized_files.keys():
-            log.write('Destination with multiple sources: {}\n'.format(destination))
-            if not organized_files[destination].add_source(source):
-                log.write('Destination has same source:\n')
-                log.write('\t DESTINATION: {}\n'.format(destination))
-                log.write('\t SOURCE: {}\n'.format(source))
-        else:
-            organized_files[destination] = OrganizedFile(source, destination)
-    return organized_files
-
-def add_record_to_organized_files(record, organized_files, log=sys.stdout):
+def organized_files_from_source_files(source_files, organized_files={}):
     for source_path, source in record.iteritems():
         if source.destination in organized_files.keys():
             log.write('Destination with multiple sources: {}\n'.format(destination))
@@ -124,22 +100,11 @@ def ensure_organized_record_completeness(organized_files, log=sys.stdout):
             organized_files[f] = OrganizedFile(source_path=UNKNOWN_PATH,path=f)
     return organized_files
 
-def old_write_record_from_source_files(source_files, target_dir, record_fname=RECORD_FNAME):
-    new_record = {k:v.destination for k,v in source_files.iteritems()}
-    record_path = os.path.join(target_dir, record_fname)
-    with sop.open_no_clobber(record_path, 'w') as f:
-        json.dump(new_record, f)
-
 def write_record(record_dict, target_dir, record_fname):
     output = {key: val.to_dict() for key,val in record_dict.iteritems()}
     record_path = os.path.join(target_dir, record_fname)
     with sop.open_no_clobber(record_path, 'w') as f:
         json.dump(output, f)
-
-def old_parse_record(record, source_files={}, organized_files={}, log=sys.stdout):
-    source_files = old_add_record_to_source_files(record, source_files, log)
-    organized_files = old_add_record_to_organized_files(record, organized_files, log)
-    return source_files, organized_files
 
 def validate_record(monkey_path, record_fname=RECORD_FNAME, log=sys.stdout):
     record = get_record(monkey_path, record_fname)
@@ -170,7 +135,10 @@ def get_record(monkey_path, class_name, record_fname):
 
 def from_new_record(source_monkey_dirs, target_monkey_dir, source_record_fname=SOURCE_RECORD_FNAME, organized_record_fname=ORGANIZED_RECORD_FNAME):
     source_files = get_record(target_monkey_dir, SourceFile, source_record_fname)
-    organized_files = get_record(target_monkey_dir, OrganizedFile, organized_record_fname)
+    if os.path.isfile(os.path.join(target_monkey_dir, organized_record_fname)):
+        organized_files = get_record(target_monkey_dir, OrganizedFile, organized_record_fname)
+    else:
+        organized_files = organized_files_from_source_files(source_files)
     for source_dir in source_monkey_dirs:
         for root, dirs, files in os.walk(source_dir):
             exclude_me = False
@@ -507,10 +475,6 @@ class OrganizedFileBeingFixed(OrganizedFile):
                 verification_copy(source_files[path], self.original, metric, log)
         return len(self.eq_classes)
 
-
-
-
-
 #########################
 ######### Setup #########
 #########################
@@ -604,6 +568,41 @@ if check_integrity:
 #########################
 ####### OLD STUFF #######
 #########################
+
+# def old_parse_record(record, source_files={}, organized_files={}, log=sys.stdout):
+#     source_files = old_add_record_to_source_files(record, source_files, log)
+#     organized_files = old_add_record_to_organized_files(record, organized_files, log)
+#     return source_files, organized_files
+
+# def old_add_record_to_source_files(record, source_files, log=sys.stdout):
+#     for source, destination in record.iteritems():
+#         if source in source_files.keys():
+#             log.write('Source moved twice: {}\n'.format(source))
+#             if source_files[source].destination != destination:
+#                 log.write('ERROR: Two destinations!\n')
+#                 log.write('\t DESTINATION: {}\n'.format(source_files[source].destination))
+#                 log.write('\t DESTINATION: {}\n'.format(destination))
+#         else:
+#             source_files[source] = SourceFile(source, destination)
+#     return source_files
+
+# def old_add_record_to_organized_files(record, organized_files, log=sys.stdout):
+#     for source, destination in record.iteritems():
+#         if destination in organized_files.keys():
+#             log.write('Destination with multiple sources: {}\n'.format(destination))
+#             if not organized_files[destination].add_source(source):
+#                 log.write('Destination has same source:\n')
+#                 log.write('\t DESTINATION: {}\n'.format(destination))
+#                 log.write('\t SOURCE: {}\n'.format(source))
+#         else:
+#             organized_files[destination] = OrganizedFile(source, destination)
+#     return organized_files
+
+# def old_write_record_from_source_files(source_files, target_dir, record_fname=RECORD_FNAME):
+#     new_record = {k:v.destination for k,v in source_files.iteritems()}
+#     record_path = os.path.join(target_dir, record_fname)
+#     with sop.open_no_clobber(record_path, 'w') as f:
+#         json.dump(new_record, f)
 
 # def old_get_record(monkey_path, record_fname=RECORD_FNAME):
 #     record_path = os.path.join(monkey_path, record_fname)
