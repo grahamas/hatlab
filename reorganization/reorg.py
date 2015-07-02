@@ -101,6 +101,12 @@ def ensure_organized_record_completeness(organized_files, log=sys.stdout):
             organized_files[f] = OrganizedFile(source_path=UNKNOWN_PATH,path=f)
     return organized_files
 
+def write_old_record_from_source_files(source_files, target_dir, record_fname=RECORD_FNAME):
+    new_record = {k:v.destination for k,v in source_files.iteritems()}
+    record_path = os.path.join(target_dir, record_fname)
+    with sop.open_no_clobber(record_path, 'w') as f:
+        json.dump(new_record, f)
+
 def write_record(record_dict, target_dir, record_fname):
     output = {key: val.to_dict() for key,val in record_dict.iteritems()}
     record_path = os.path.join(target_dir, record_fname)
@@ -154,7 +160,7 @@ def from_new_record(source_monkey_dirs, target_monkey_dir, source_record_fname=S
                 if monkey_path not in source_files:
                     print 'New file: {}\n'.format(monkey_path)
                     source_files[monkey_path] = SourceFile.infer_destination(monkey_path, target_monkey_dir)
-    old_write_record_from_source_files(source_files, target_monkey_dir)
+    write_old_record_from_source_files(source_files, target_monkey_dir)
     return source_files, organized_files
 
 def infer_date(ambiguous, mod_time_epoch):
@@ -599,11 +605,7 @@ if check_integrity:
 #             organized_files[destination] = OrganizedFile(source, destination)
 #     return organized_files
 
-# def old_write_record_from_source_files(source_files, target_dir, record_fname=RECORD_FNAME):
-#     new_record = {k:v.destination for k,v in source_files.iteritems()}
-#     record_path = os.path.join(target_dir, record_fname)
-#     with sop.open_no_clobber(record_path, 'w') as f:
-#         json.dump(new_record, f)
+
 
 # def old_get_record(monkey_path, record_fname=RECORD_FNAME):
 #     record_path = os.path.join(monkey_path, record_fname)
