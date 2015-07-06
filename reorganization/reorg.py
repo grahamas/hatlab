@@ -205,15 +205,19 @@ def infer_date(ambiguous, mod_time_epoch):
     if len(possible_dates) == 1:
         return possible_dates[0]
 
-def copy_files(source_files, target_files, log=sys.stdout):
+def copy_files(source_files, target_files, log=sys.stdout, only_ext=None):
     size_left = 0
     for source_path,source in source_files.iteritems():
         if source.exists and not os.path.isfile(source.destination):
-            size_left += os.path.getsize(source_path)
+            if only_ext is None or os.path.splitext(source_path)[1] in only_ext:
+                size_left += os.path.getsize(source_path)
+
     log.write('Total movement: {} GB'.format(str(size_left / 1000000000.0)))
     for source_path, source in source_files.iteritems():
         if not source.exists:
             log.write("DOES NOT EXIST:\n\t{}\n".format(source_path))
+            continue
+        if only_ext is not None and os.path.splitext(source_path)[1] not in only_ext:
             continue
         destination_path = source.destination
         file_size = os.path.getsize(source_path)
@@ -237,8 +241,11 @@ def copy_files(source_files, target_files, log=sys.stdout):
             log.write("Moving {} GB\n".format(str(file_size / 1000000000.0)))
             if not os.path.isdir(os.path.dirname(destination_path)):
                 os.makedirs(os.path.dirname(destination_path))
+            start = time.time()
             myshutil.copy2(source_path, destination_path)
+            elapsed = time.time() - start
             log.write("... done.\n")
+            log.write("Rate = {} MB/s".format((file_size / 1000000.0) / elapsed))
             size_left -= file_size
             log.write("{} GB remaining.\n".format(str(size_left/1000000000.0)))
 
@@ -564,7 +571,7 @@ else:
 
 if full_run:
     write_record(source_files, target_monkey_dir, record_fname=SOURCE_RECORD_FNAME)
-    copy_files(source_files, organized_files)
+    copy_files(source_files, organized_files, only_ext=['.nev'])
     write_record(organized_files, target_monkey_dir, record_fname=ORGANIZED_RECORD_FNAME)
 
 if check_integrity:
