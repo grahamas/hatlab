@@ -316,8 +316,6 @@ def verify_source_files(source_files, organized_files, metrc, log=sys.stdout, on
     log.write("There are {} problems to fix.".format())
     
 def check_integrity(source_files, organized_files, log=sys.stdout, only_exts=None):
-    # FIRST VERIFY ORGANIZED_FILES SOURCES!!!!!!
-    verify_organized_files(source_files, organized_files, log=sys.stdout, only_exts=None)
 
     def size_metric(f, force='Irrelevant'): 
         return os.path.getsize(f.path) if os.path.isfile(f.path) else 0
