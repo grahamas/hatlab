@@ -377,7 +377,7 @@ class OrganizedFile(File):
         self.source_paths = [source_path]
         self.origin = ""
     def sources_equal(self, all_sources, metric, force=False):
-        if len(self.sources) == 1:
+        if len(self.source_paths) == 1:
             return True
         source_objs = map(lambda source_path: all_sources[source_path],self.source_paths)
         return reduce(lambda a,b: metric(a) == metric(b), source_objs)
