@@ -259,70 +259,89 @@ def double_check(file_obj, metric):
         current_result = metric(file_obj, force=True)
     return current_result
 
-def verification_copy(source, target, metric, log=sys.stdout, only_exts=None):
+def verification_copy(source, target, metric, log=sys.stdout, only_ext=None):
     attempt_limit = 10
     source_path = source.path
     target_path = target.path
+    if not os.path.isfile(source_path):
+        log.write("ERROR File does not exist: {}\n".format(source_path))
+        return False
+    file_size = os.path.getsize(source_path)
     for count in range(attempt_limit):
-        log.write("Attempt {} of {} to write {}".format(str(count), str(attempt_limit), source_path))
-        shutil.copy2(source, target)
+        log.write("Attempt {} of {} to write {}\n".format(str(count+1), str(attempt_limit), source_path))
+        log.write("File size {}\n".format(str(file_size)))
+        start = time.time()
+        myshutil.copy2(source_path, target_path)
+        elapsed = time.time() - start
+        log.write("Done! ({} MB/s)\n".format((file_size / 1000000.0) / elapseD))
         if metric(source) == metric(target):
             return True
     return False
 
-def fix_inequal_sources(source_files, organized_files, inequal_sources, metric, log=sys.stdout, only_exts=None):
+def fix_inequal_sources(source_files, organized_files, inequal_sources, metric, log=sys.stdout, only_ext=None):
     to_be_fixed = [OrganizedFileBeingFixed(o_file) for o_file in 
                     [organized_files[path] for path in inequal_sources]
                     if o_file.origin is UNKNOWN_PATH]
+    log.write("Fixing inequal sources...\n\n")
     for f in to_be_fixed:
         num_partitions = f.partition_sources(source_files, metric)
         if num_partitions > 1:
             log.write("Different sources have same target!\n")
             log.write("Automatic resolution of this problem is not yet implemented.\n")
             log.write("Details follow:\n")
-            log.write("\tDestination: {}".format(f.path))
-            log.write("\tSources: {}".format(f.sources))
-            log.write("\tEquivalence Classes: {}".format(f.eq_classes))
+            log.write("\tDestination: {}\n".format(f.path))
+            log.write("\tSources: {}\n".format(f.sources))
+            log.write("\tEquivalence Classes: {}\n".format(f.eq_classes))
             raise ValueError("Different sources have same target! See log.")
+    log.write("Done fixing inequal sources.\n\n")
 
-def verify_organized_files(source_files, organized_files, metric, log=sys.stdout, only_exts=None):
-    inequal_sources = []
-    equal_sources = []
+def verify_organized_files(source_files, organized_files, metric, log=sys.stdout, only_ext=None):
+    log.write("Verifying organized files...\n\n")
+    with_inequal_sources = []
+    with_equal_sources = []
     for organized_path, organized_file in organized_files.iteritems():
         ext = os.path.splitext(organized_path)[1]
-        if only_exts is not None and ext not in only_exts:
+        if only_ext is not None and ext not in only_ext:
             continue
         if not organized_file.sources_equal(source_files, metric):
-            inequal_sources.append(organized_path)
+            with_inequal_sources.append(organized_path)
         else:
-            equal_sources.append(organized_path)
-    fix_inequal_sources(source_files, organized_files, inequal_sources, metric)
-    for organized_path in equal_sources + inequal_sources:
+            with_equal_sources.append(organized_path)
+    fix_inequal_sources(source_files, organized_files, with_inequal_sources, metric)
+    all_organized_paths = with_equal_sources + with_inequal_sources
+    num_files = len(all_organized_paths)
+    count = 0
+    for organized_path in all_organized_paths:
         organized_file = organized_files[organized_path]
         if not organized_file.first_source_equal(source_files, metric):
-            verification_copy(source_files[organized_files.source_paths[0]], organized_file, metric, log=log)
+            verification_copy(source_files[organized_file.source_paths[0]], organized_file, metric, log=log)
+        else:
+            log.write("Good file! ")
+        count += 1
+        log.write("({} / {})\n".format(count, num_files))
 
-def verify_source_files(source_files, organized_files, metrc, log=sys.stdout, only_exts=None):
+
+def verify_source_files(source_files, organized_files, metrc, log=sys.stdout, only_ext=None):
     #### NOT DONE #####
     to_copy = []
     for source_path, source in source_files.iteritems():
         target_path = source.destination
         if not checker(source_path, target_path, log):
-            if only_exts is not None:
-                if os.path.splitext(source_path)[1] in only_exts:
+            if only_ext is not None:
+                if os.path.splitext(source_path)[1] in only_ext:
                     to_copy.append(source_path)
             else:
                 to_copy.append(source_path)
     log.write("There are {} problems to fix.".format())
     
-def check_integrity(source_files, organized_files, log=sys.stdout, only_exts=None):
+def check_integrity(source_files, organized_files, log=sys.stdout, only_ext=None):
 
     def size_metric(f, force='Irrelevant'): 
         return os.path.getsize(f.path) if os.path.isfile(f.path) else 0
     def hash_metric(f, force=False):
         return f.hash(force=force)
 
-    verify_organized_files(source_files, organized_files, size_metric, log=log, only_exts=only_exts)
+    verify_organized_files(source_files, organized_files, size_metric, log=log, only_ext=only_ext)
     #check_hashes(source_files, organized_files)
 
 
@@ -381,7 +400,7 @@ class OrganizedFile(File):
             return True
         source_objs = map(lambda source_path: all_sources[source_path],self.source_paths)
         return reduce(lambda a,b: metric(a) == metric(b), source_objs)
-    def first_source_equal(self, all_sources, force=False):
+    def first_source_equal(self, all_sources, metric, force=False):
         first_source = all_sources[self.source_paths[0]]
         return metric(first_source) == metric(self)
     def add_source(self, source):
@@ -573,7 +592,7 @@ if full_run:
     write_record(organized_files, target_monkey_dir, record_fname=ORGANIZED_RECORD_FNAME)
 
 if check_integrity:
-    check_integrity(source_files, organized_files)
+    check_integrity(source_files, organized_files, only_ext=['.nev'])
     write_record(source_files, target_monkey_dir, record_fname=SOURCE_RECORD_FNAME)
     write_record(organized_files, target_monkey_dir, record_fname=ORGANIZED_RECORD_FNAME)
 
