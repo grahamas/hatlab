@@ -1,5 +1,7 @@
 function width = trough_peak_width( waveform )
 
+
+%%% TODO: INTERPOLATE! (~1MHz)
 if isempty(waveform)
     width = 0;
     return
