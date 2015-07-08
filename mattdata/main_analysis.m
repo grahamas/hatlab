@@ -35,32 +35,46 @@ for ii = 1:4
         this_behavior = relevant_beh(jj, :);
         this_behavior = arrayfun(@round, this_behavior);
         
-        before_lfp = lfp((this_behavior(1)-before_start):this_behavior(1));
+        before_time = (this_behavior(1)-before_start):this_behavior(1);
+        before_lfp = lfp(before_time);
         behavior_spectra(jj).before = spectra_struct(before_lfp, local_moving_win, params);
+        behavior_spectra(jj).before.time = before_time;
 
 %         start_lfp = lfp(this_behavior(1):this_behavior(2));
 %         behavior_spectra(jj).start = spectra_struct(start_lfp, local_moving_win, params);
         
-        delay_lfp = lfp(this_behavior(2):this_behavior(3));
+        delay_time = this_behavior(2):this_behavior(3);
+        delay_lfp = lfp( delay_time );
         behavior_spectra(jj).delay = spectra_struct(delay_lfp, local_moving_win, params);
+        behavior_spectra(jj).delay.time = delay_time;
         
-        go_lfp = lfp(this_behavior(3):this_behavior(4));
+        go_time = this_behavior(3):this_behavior(4);
+        go_lfp = lfp(go_time);
         behavior_spectra(jj).go = spectra_struct(go_lfp, local_moving_win, params);
+        behavior_spectra(jj).go.time = behavior_time;
         
-        movement_lfp = lfp(this_behavior(4):this_behavior(5));
+        movement_time = this_behavior(4):this_behavior(5);
+        movement_lfp = lfp(movement_time);
         behavior_spectra(jj).movement = spectra_struct(movement_lfp, local_moving_win, params);
+        behavior_spectra(jj).movement.time = movement_time;
         
 %         reward_wait_lfp = lfp(this_behavior(5):this_behavior(6));
 %         behavior_spectra(jj).after = spectra_struct(reward_wait_lfp, local_moving_win, params);
         
-        after_reward_lfp = lfp(this_behavior(6):min((this_behavior(6)+after_reward), length(lfp)));
+        after_reward_time = this_behavior(6):min((this_behavior(6)+after_reward), length(lfp));
+        after_reward_lfp = lfp(after_reward_time);
         behavior_spectra(jj).after_reward = spectra_struct(after_reward_lfp, local_moving_win, params);
+        behavior_spectra(jj).after_reward.time = after_reward_time;
         
-        gross_lfp = lfp( (this_behavior(1)-before_start) :...
-            min(this_behavior(end)+after_reward,length(lfp)) );
+        gross_time = (this_behavior(1)-before_start) :...
+            min(this_behavior(end)+after_reward,length(lfp));
+        gross_lfp = lfp( gross_time );
         behavior_spectra(jj).gross = mt_struct(gross_lfp, local_moving_win, params);
+        behavior_spectra(jj).gross.time = gross_time;
+        
         mid_beta = mid_beta_filt(gross_lfp);
         behavior_spectra(jj).mid_beta = mid_beta;
+        behavior_spectra(jj).mid_beta_pt = get_phase_transitions(gross_time, mid_beta);
     end
     all_channels(ii).behavior_spectra = behavior_spectra;
         
