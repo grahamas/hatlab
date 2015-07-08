@@ -59,6 +59,8 @@ for ii = 1:4
         gross_lfp = lfp( (this_behavior(1)-before_start) :...
             min(this_behavior(end)+after_reward,length(lfp)) );
         behavior_spectra(jj).gross = mt_struct(gross_lfp, local_moving_win, params);
+        mid_beta = mid_beta_filt(gross_lfp);
+        behavior_spectra(jj).mid_beta = mid_beta;
     end
     all_channels(ii).behavior_spectra = behavior_spectra;
         
