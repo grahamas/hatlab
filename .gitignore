@@ -3,3 +3,6 @@
 *~
 *.mat
 *.pdf
+*.out
+*.err
+*.batch
