@@ -15,8 +15,9 @@ for ii = 1:num_channels
     
     num_units = length(all_channels(ii).unit);
     for jj = 1:num_units
-        unit = unit_waveforms(all_channels(ii).unit(jj));
-        unit.beta_ppc = spike_field_ppc(unit.timestamp, channel_mid_beta,...
-            lfp_times);
+        [beta_ppc, spike_angles] = spike_field_ppc(unit.timestamp,...
+            channel_mid_beta, lfp_times);
+        unit_waveforms(all_channels(ii).unit(jj)).beta_ppc = beta_ppc;
+        unit_waveforms(all_channels(ii).unit(jj)).spike_angles = spike_angles;
     end
 end
