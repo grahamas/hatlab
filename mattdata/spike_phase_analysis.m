@@ -12,6 +12,11 @@ num_behaviors = size(beh, 1);
 before_start = 2 * lfp_fs;
 after_reward = .5 * lfp_fs;
 
+WIDTH_CUT = 10;
+
+figure
+subplot(2,2,1);
+
 for ii = 1:4
     if isempty(all_channels(ii).unit)
         continue
@@ -20,9 +25,15 @@ for ii = 1:4
     num_units = length(units);
     for jj = 1:num_units
         unit_dx = units(jj);
+        spike_times = unit_waveforms(unit_dx).timestamp;
+        width = unit_waveforms(unit_dx).width;
+        if width > WIDTH_CUT
+            base = 1;
+        else
+            base = 0;
+        end
         
-        tp_width = trough_peak_width(unit_waveforms(unit_dx).waveform);
-        unit_waveforms(unit_dx).width = tp_width;
+        
     end
     
 end
