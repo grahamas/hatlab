@@ -6,6 +6,8 @@ end
 lfp_fs = 1000;
 spike_fs = 30000;
 
+num_channels = length(all_channels);
+
 parfor ii = 1:num_channels
     if isempty(all_channels(ii).unit_waveforms)
         continue
@@ -26,4 +28,4 @@ parfor ii = 1:num_channels
     end
 end
 
-save('all_channels_ppc.mat', all_channels, '-v7.3')
+save('all_channels_ppc.mat', 'all_channels', '-v7.3')
