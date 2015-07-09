@@ -22,3 +22,5 @@ parfor ii = 1:num_channels
         all_channels(ii).unit_waveforms(jj).spike_angles = spike_angles;
     end
 end
+
+save('all_channels_ppc.mat', all_channels)
