@@ -23,4 +23,4 @@ parfor ii = 1:num_channels
     end
 end
 
-save('all_channels_ppc.mat', all_channels)
+save('all_channels_ppc.mat', all_channels, '-v7.3')
