@@ -35,7 +35,7 @@ parfor ii = 1:num_channels
                 % save some space
                 all_channels(ii).behavior_spectra(ll).(regime).time = [start, stop];
                 
-                these_spike_angles = spike_angles(spike_times >= start &&...
+                these_spike_angles = spike_angles(spike_times >= start &...
                     spike_times < stop);
                 
                 regime_spike_angles{ll} = these_spike_angles;
