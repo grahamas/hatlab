@@ -9,7 +9,6 @@ function [ppc, spike_angle] = spike_field_ppc( spike_times, field, field_times )
 % Computes pairwise phase consistency, based on Vinck et al, 2010.
 %
 
-phase_dot = @(a1, a2) cos(a1) * cos(a2) + sin(a1) * sin(a2);
 
 % If there are problems, maybe no angle?
 field_angle = angle(hilbert(field));
@@ -29,16 +28,7 @@ for ii = 1:num_spikes
         field_angle(next_field_dx), spike_time);
 end
 
-ppc = 0;
-for ii = 1:num_spikes-1
-    angle_i = spike_angle(ii);
-    for jj = ii+1:num_spikes
-        angle_j = spike_angle(jj);
-        ppc = ppc + phase_dot(angle_i, angle_j);
-    end
-end
-
-ppc = ppc * (2 / (num_spikes * (num_spikes - 1)));
+ppc = ppc_from_spike_angles(spike_angle);
 
 end
 
