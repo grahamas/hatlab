@@ -6,3 +6,5 @@
 *.out
 *.err
 *.batch
+*.fig
+.TOOLS_EXCLUDE
