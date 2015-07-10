@@ -38,6 +38,7 @@ for kk = 1:length(regimes)
                 temp_unit.regime_ppcs.(regime)
                 pause
                 filter_nan(temp_unit.regime_ppcs.(regime))
+            end
             if temp_unit.width > 10
                 wide_mean_accum = wide_mean_accum + this_mean;
             else
