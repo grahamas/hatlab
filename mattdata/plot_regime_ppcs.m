@@ -18,6 +18,7 @@ for kk = 1:length(regimes)
     regime = regimes{kk};
     wide_mean_accum = 0;
     narrow_mean_accum = 0;
+    tot_num_units = 0;
     
     for ii = 1:num_channels
         if isempty(all_channels(ii).unit_waveforms)
@@ -27,6 +28,8 @@ for kk = 1:length(regimes)
         num_regimes = length(regimes);
         num_behaviors = length(all_channels(ii).behavior_spectra);
         num_units = length(all_channels(ii).unit_waveforms);
+        
+        tot_num_units = tot_num_units + num_units;
     
         for jj = 1:num_units
             temp_unit = all_channels(ii).unit_waveforms(jj);
@@ -37,8 +40,8 @@ for kk = 1:length(regimes)
             end
         end
     end
-    wide_means(kk) = wide_mean_accum / num_units;
-    narrow_means(kk) = narrow_mean_accum / num_units;
+    wide_means(kk) = wide_mean_accum / tot_num_units;
+    narrow_means(kk) = narrow_mean_accum / tot_num_units;
 end
 
 figure
