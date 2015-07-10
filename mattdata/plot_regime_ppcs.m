@@ -33,10 +33,15 @@ for kk = 1:length(regimes)
     
         for jj = 1:num_units
             temp_unit = all_channels(ii).unit_waveforms(jj);
+            this_mean = mean(filter_nan(temp_unit.regime_ppcs.(regime)));
+            if isnan(this_mean)
+                temp_unit.regime_ppcs.(regime)
+                pause
+                filter_nan(temp_unit.regime_ppcs.(regime))
             if temp_unit.width > 10
-                wide_mean_accum = wide_mean_accum + mean(filter_nan(temp_unit.regime_ppcs.(regime)));
+                wide_mean_accum = wide_mean_accum + this_mean;
             else
-                narrow_mean_accum = narrow_mean_accum + mean(filter_nan(temp_unit.regime_ppcs.(regime)));
+                narrow_mean_accum = narrow_mean_accum + this_mean;
             end
         end
     end
