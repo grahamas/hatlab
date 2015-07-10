@@ -12,6 +12,9 @@ regimes = {'before', 'delay', 'go', 'movement',...
 wide_means = zeros(length(regimes), 1);
 narrow_means = zeros(length(regimes), 1);
 
+good_wide_units = zeros(length(regimes),1);
+good_narrow_units = zeros(length(regimes),1);
+
 filter_nan = @(arr) arr(~isnan(arr));
     
 for kk = 1:length(regimes)
@@ -35,14 +38,15 @@ for kk = 1:length(regimes)
             temp_unit = all_channels(ii).unit_waveforms(jj);
             this_mean = mean(filter_nan(temp_unit.regime_ppcs.(regime)));
             if isnan(this_mean)
-                temp_unit.regime_ppcs.(regime)
-                pause
-                filter_nan(temp_unit.regime_ppcs.(regime))
-            end
-            if temp_unit.width > 10
-                wide_mean_accum = wide_mean_accum + this_mean;
+                tot_num_units = tot_num_units - 1;
             else
-                narrow_mean_accum = narrow_mean_accum + this_mean;
+                if temp_unit.width > 10
+                    wide_mean_accum = wide_mean_accum + this_mean;
+                    good_wide_units(kk) = good_wide_units(kk) + 1;
+                else
+                    narrow_mean_accum = narrow_mean_accum + this_mean;
+                    good_narrow_units(kk) = good_narrow_units(kk) + 1;
+                end
             end
         end
     end
