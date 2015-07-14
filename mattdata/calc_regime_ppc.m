@@ -36,7 +36,7 @@ parfor ii = 1:num_channels
             consistency = zeros(num_behaviors, 1);
             regime_spike_angles = cell(num_behaviors, 1);
             regime_spike_times = cell(num_behaviors, 1);
-            regime_spike_rates = cell(num_behaviors, 1);
+            regime_spike_rates = zeros(num_behaviors, 1);
             for ll = 1:num_behaviors
                 timestamps = all_channels(ii).behavior_spectra(ll).(regime).time;
                 start = timestamps(1);
@@ -49,19 +49,19 @@ parfor ii = 1:num_channels
                 
                 regime_spike_angles{ll} = these_spike_angles;
                 regime_spike_times{ll} = these_spike_times;
-                regime_spike_rates{ll} = length(these_spike_times) / (stop - start) % SECONDS DEPENDENCE
+                regime_spike_rates(ll) = length(these_spike_times) / (stop - start) % SECONDS DEPENDENCE
                 consistency(ll) = ppc_from_spike_angles(these_spike_angles);
             end
             all_channels(ii).unit_waveforms(jj).regime_spike_angles.(regime) = regime_spike_angles;
             all_channels(ii).unit_waveforms(jj).regime_spike_times.(regime) = regime_spike_times;
-            all_channels(ii).unit_waveforms(jj).regime_spike_rates.(regime) = regime_spike_rates
+            all_channels(ii).unit_waveforms(jj).regime_spike_rates.(regime) = regime_spike_rates;
             all_channels(ii).unit_waveforms(jj).regime_ppcs.(regime) = consistency;
         end
     end
 end
 '...done.'
        
-save('all_channels.mat', 'all_channels', '-v7.3')
+save('all_channels_ppc.mat', 'all_channels', '-v7.3')
             
             
             
