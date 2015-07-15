@@ -29,6 +29,7 @@ for ii = 1:num_channels
     
     % Filter LFP
     for jj = 1:num_bands
+        'Starting band ', num2str(jj)
         band_name = defined_bands{jj};
         band_cutoffs = definitions.bands.(band_name);
         session.channel(ii).lfp.(band_name).signal...
@@ -42,6 +43,7 @@ for ii = 1:num_channels
     % it's clearer this way.
     num_units = length(session.channel(ii).unit);
     for jj = 1:num_units
+        'Starting unit ', num2str(jj)
         spike_times = session.channel(ii).unit.spike_times;
         num_behaviors = length(session.beh);
         session.channel(ii).unit(jj).ppc...
@@ -49,12 +51,14 @@ for ii = 1:num_channels
         session.channel(ii).unit(jj).firing_rate...
             = zeros(num_bands * num_epochs * num_behaviors);
         for band_num = 1:num_bands
+            'Starting band ', num2str(band_num)
             band_name = defined_bands{band_num};
             band_spike_angles = spike_field_angle(spike_times,...
                 session.channel(ii).lfp.(band_name).angle, lfpfs);
             session.channel(ii).unit(jj).spike_angles.(band_name)...
                 = band_spike_angles;
             for kk = 1:num_epochs
+                'Starting epoch ', num2str(kk)
                 epoch_name = defined_epochs{kk};
                 epoch_func = definitions.epochs.(epoch_name);
                 epoch_time = epoch_func(session.beh);
