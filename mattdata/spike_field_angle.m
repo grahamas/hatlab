@@ -1,17 +1,13 @@
-function [ppc, spike_angle] = spike_field_ppc( spike_times, field, field_times )
-%SPIKE_FIELD_PPC
+function spike_angle = spike_field_angle( spike_times, field_angle, field_fs )
+%SPIKE_FIELD_ANGLE
 %   Given
 %           spike_times: timestamps of spikes
-%           field:  local field potential
-%           field_times: timestamps indexically related to field,
-%               temporally to spikes
-%
-% Computes pairwise phase consistency, based on Vinck et al, 2010.
+%           field_angle:  local field angle
+%           field_fs: sampling freq of LFP
 %
 
-
-% If there are problems, maybe no angle?
-field_angle = angle(hilbert(field));
+field_step = 1/field_fs;
+field_times = field_step:field_step:(length(field_angle)/field_fs);
 
 % Here we compute spike angle
 num_spikes = length(spike_times);
@@ -27,8 +23,6 @@ for ii = 1:num_spikes
         field_times(next_field_dx), field_angle(prev_field_dx),...
         field_angle(next_field_dx), spike_time);
 end
-
-ppc = ppc_from_spike_angles(spike_angle);
 
 end
 
