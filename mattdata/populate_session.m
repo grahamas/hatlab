@@ -29,7 +29,6 @@ for ii = 1:num_channels
     
     % Filter LFP
     for jj = 1:num_bands
-        'Starting band ', num2str(jj)
         band_name = defined_bands{jj};
         band_cutoffs = definitions.bands.(band_name);
         session.channel(ii).lfp.(band_name).signal...
@@ -43,7 +42,6 @@ for ii = 1:num_channels
     % it's clearer this way.
     num_units = length(session.channel(ii).unit);
     for jj = 1:num_units
-        'Starting unit ', num2str(jj)
         spike_times = session.channel(ii).unit.spike_times;
         num_behaviors = length(session.beh);
         session.channel(ii).unit(jj).ppc...
