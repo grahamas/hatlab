@@ -27,14 +27,17 @@ for ii = 1:num_channels
         continue
     end
     
+    band_signals = cell(num_bands, 1);
+    band_angles = cell(num_bands, 1);
+
     % Filter LFP
     for jj = 1:num_bands
         band_name = defined_bands{jj};
         band_cutoffs = definitions.bands.(band_name);
-        session.channel(ii).lfp.(band_name).signal...
+        band_signals{jj}...
             = bandpass_filt(double(session.channel(ii).lfp.raw), band_cutoffs);
-        session.channel(ii).lfp.(band_name).angle...
-            = angle(hilbert(session.channel(ii).lfp.(band_name).signal));
+        band_angles{jj}...
+            = angle(hilbert(band_signals{jj}));
     end
 
     % Populate units
@@ -52,9 +55,7 @@ for ii = 1:num_channels
             'Starting band ', num2str(band_num)
             band_name = defined_bands{band_num};
             band_spike_angles = spike_field_angle(spike_times,...
-                session.channel(ii).lfp.(band_name).angle, lfpfs);
-            session.channel(ii).unit(jj).spike_angles.(band_name)...
-                = band_spike_angles;
+                band_angles{band_num}, lfpfs);
             for kk = 1:num_epochs
                 'Starting epoch ', num2str(kk)
                 epoch_name = defined_epochs{kk};
