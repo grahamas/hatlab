@@ -43,7 +43,10 @@ for ii = 1:num_channels
     end
 end
                 
-'done'        
+'done'
+
+save('analysis_session_2.mat', 'consistency', 'firing_rate',...
+    'spike_width', 'epoch');
     
 narrow_waveform = spike_width < 10;
 
@@ -54,6 +57,6 @@ narrow_waveform = spike_width < 10;
 % 
 % mdl = fitlm(tbl, 'interactions', 'ResponseVar', 'consistency')
 
-[p, tbl, stats, terms] = anovan(consistency, {firing_rate, spike_width,...
-    epoch}, 'varnames', {'firing_rate', 'spike_width', 'epoch'},...
-    'model', 'interaction');
+% [p, tbl, stats, terms] = anovan(consistency, {firing_rate, spike_width,...
+%     epoch}, 'varnames', {'firing_rate', 'spike_width', 'epoch'},...
+%     'model', 'interaction');
