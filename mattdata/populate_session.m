@@ -16,8 +16,10 @@ lfpfs = session.lfpfs;
 num_channels = length(session.channel);
 
 broadcast_definitions = repmat(definitions, num_channels, 1);
+broadcast_beh = repmat(session.beh, 1,1,num_channels);
 
 channels = session.channel;
+num_behaviors = length(session.beh);
 
 parfor ii = 1:num_channels
     
@@ -52,21 +54,18 @@ parfor ii = 1:num_channels
     num_units = length(channels(ii).unit);
     for jj = 1:num_units
         spike_times = channels(ii).unit.spike_times;
-        num_behaviors = length(session.beh);
         channels(ii).unit(jj).ppc...
             = zeros(num_bands, num_epochs, num_behaviors);
         channels(ii).unit(jj).firing_rate...
             = zeros(num_bands, num_epochs, num_behaviors);
         for band_num = 1:num_bands
-            'Starting band ', num2str(band_num)
             band_name = defined_bands{band_num};
             band_spike_angles = spike_field_angle(spike_times,...
                 band_angles{band_num}, lfpfs);
             for kk = 1:num_epochs
-                'Starting epoch ', num2str(kk)
                 epoch_name = defined_epochs{kk};
                 epoch_func = definitions.epochs.(epoch_name);
-                epoch_time = epoch_func(session.beh);
+                epoch_time = epoch_func(broadcast_beh(:,:,ii));
                 for ll = 1:num_behaviors
                     time = epoch_time(ll,:);
                     epoch_spike_dx = spike_times > time(1)...
