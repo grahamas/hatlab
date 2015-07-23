@@ -48,9 +48,9 @@ for ii = 1:num_channels
         spike_times = session.channel(ii).unit.spike_times;
         num_behaviors = length(session.beh);
         session.channel(ii).unit(jj).ppc...
-            = zeros(num_bands * num_epochs * num_behaviors);
+            = zeros(num_bands, num_epochs, num_behaviors);
         session.channel(ii).unit(jj).firing_rate...
-            = zeros(num_bands * num_epochs * num_behaviors);
+            = zeros(num_bands, num_epochs, num_behaviors);
         for band_num = 1:num_bands
             'Starting band ', num2str(band_num)
             band_name = defined_bands{band_num};
