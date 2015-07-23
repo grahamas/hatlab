@@ -30,18 +30,18 @@ parfor ii = 1:num_channels
     band_signals = cell(num_bands, 1);
     band_angles = cell(num_bands, 1);
 
-    definitions = broadcast_definitions(ii);
+    these_definitions = broadcast_definitions(ii);
     
-    defined_bands = definitions.bands.list_all;
+    defined_bands = these_definitions.bands.list_all;
     num_bands = size(defined_bands, 2);
 
-    defined_epochs = definitions.epochs.list_all;
+    defined_epochs = these_definitions.epochs.list_all;
     num_epochs = size(defined_epochs, 2);
     
     % Filter LFP
     for jj = 1:num_bands
         band_name = defined_bands{jj};
-        band_cutoffs = definitions.bands.(band_name);
+        band_cutoffs = these_definitions.bands.(band_name);
         band_signals{jj}...
             = bandpass_filt(double(channels(ii).lfp.raw), band_cutoffs);
         band_angles{jj}...
@@ -64,7 +64,7 @@ parfor ii = 1:num_channels
                 band_angles{band_num}, lfpfs);
             for kk = 1:num_epochs
                 epoch_name = defined_epochs{kk};
-                epoch_func = definitions.epochs.(epoch_name);
+                epoch_func = these_definitions.epochs.(epoch_name);
                 epoch_time = epoch_func(broadcast_beh(:,:,ii));
                 for ll = 1:num_behaviors
                     time = epoch_time(ll,:);
