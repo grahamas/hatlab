@@ -8,7 +8,7 @@ nev_timestamp = nev.Data.Spikes.TimeStamp;
 nev_waveforms = nev.Data.Spikes.Waveform;
 
 NUM_CHANS = 96;
-prev_chan = 0;
+prev_chan_num = 0;
 count = 0;
 
 num_units = length(chans);
@@ -55,6 +55,7 @@ for ii = 1:num_units
             = trough_peak_width(nev_waveforms(ismember(nev_timestamp,...
                 these_nev_spike_times),:));
     end
+    prev_chan_num = chan_num;
 end
 end
 

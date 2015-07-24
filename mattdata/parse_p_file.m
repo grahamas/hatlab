@@ -40,6 +40,7 @@ for ii = 1:num_good_units
         base_session.channel(chan_num).unit(num_units).width...
             = trough_peak_width(waveforms(ismember(spikeTimes,these_spike_times),:));
     end
+    prev_chan_num = chan_num;
 end
 end
 
