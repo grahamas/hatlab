@@ -26,9 +26,6 @@ parfor ii = 1:num_channels
     if isempty(channels(ii).lfp)
         continue
     end
-    
-    band_signals = cell(num_bands, 1);
-    band_angles = cell(num_bands, 1);
 
     these_definitions = broadcast_definitions(ii);
     
@@ -37,6 +34,9 @@ parfor ii = 1:num_channels
 
     defined_epochs = these_definitions.epochs.list_all;
     num_epochs = size(defined_epochs, 2);
+    
+    band_signals = cell(num_bands, 1);
+    band_angles = cell(num_bands, 1);
     
     % Filter LFP
     for jj = 1:num_bands
@@ -81,7 +81,9 @@ parfor ii = 1:num_channels
         end
     end
 end
+
                     
+session.channel = channels;
             
 
 
