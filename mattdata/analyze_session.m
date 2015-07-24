@@ -32,6 +32,8 @@ for ii = 1:num_channels
                 this_consistency = ppc(kk, ll, :);
                 consistency = [consistency;
                     this_consistency];
+                size(epoch)
+                size(repmat(definitions.epochs.list_all{ll}, size(this_consistency)))
                 epoch = [epoch; 
                     repmat(definitions.epochs.list_all{ll}, size(this_consistency))];
                 firing_rate = [firing_rate;...
