@@ -1,4 +1,4 @@
-function [consistency, firing_rate, spike_width, epoch] = get_analysis_columns(session, definitions)
+function [consistency, firing_rate, spike_width, epoch, band] = get_analysis_columns(session, definitions)
 
 num_channels = length(session.channel);
 
@@ -16,6 +16,7 @@ consistency = [];
 firing_rate = [];
 spike_width = [];
 epoch = [];
+band = [];
 
 for ii = 1:num_channels
     channel = session.channel(ii);
@@ -23,22 +24,26 @@ for ii = 1:num_channels
     for jj = 1:num_units
         unit = channel.unit(jj);
         width = unit.width;
+        if length(width) ~= 1
+            fprintf('There is a problem!')
+        end
         ppc = unit.ppc; % num_bands, num_epochs, num_behaviors
         unit_firing_rate = unit.firing_rate;
         num_epochs = size(ppc, 2);
         for kk = 1:num_bands
             for ll = 1:num_epochs
-                this_consistency = ppc(kk, ll, :);
+                this_consistency = squeeze(ppc(kk, ll, :));
+                this_firing_rate = squeeze(unit_firing_rate(kk,ll,:));
                 consistency = [consistency;
                     this_consistency];
-                size(epoch)
-                size(repmat(definitions.epochs.list_all{ll}, size(this_consistency)))
                 epoch = [epoch; 
-                    repmat(definitions.epochs.list_all{ll}, size(this_consistency))];
+                    repmat(definitions.epochs.list_all(ll), size(this_consistency))];
                 firing_rate = [firing_rate;...
-                    repmat(unit_firing_rate, size(this_consistency))];
+                    this_firing_rate];
                 spike_width = [spike_width;...
                     repmat(width, size(this_consistency))]; 
+                band = [band;
+                    repmat(definitions.bands.list_all(kk), size(this_consistency))];
             end
         end
     end

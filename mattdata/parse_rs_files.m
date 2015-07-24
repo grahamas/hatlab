@@ -1,11 +1,13 @@
 function base_session = parse_rs_files( snr_file, lfp_file, spike_file )
 
-load(snr_file, lfp_file, spike_file);
+load(snr_file);
+load(lfp_file);
+load(spike_file);
 
 nev = sortedNEV;
 nev_ft = nev.MetaTags.TimeRes;
 nev_timestamp = nev.Data.Spikes.TimeStamp;
-nev_waveforms = nev.Data.Spikes.Waveform;
+nev_waveforms = nev.Data.Spikes.Waveform';
 
 NUM_CHANS = 96;
 prev_chan_num = 0;
@@ -16,6 +18,8 @@ num_units = length(chans);
 base_session = {};
 base_session.beh = beh;
 base_session.channel = {};
+
+base_session.lfpfs = 1000;
 
 for ii = 1:num_units
     chan_num = chans(ii);
@@ -36,13 +40,12 @@ for ii = 1:num_units
                 continue
             end
         end
-        chan_str = zero_pad_str(num2str(chan), 3);
+        chan_str = zero_pad_str(num2str(chan_num), 3);
         unit_str = char(num_units-1+'a');
         
         timestamp_name = ['Chan',chan_str,unit_str];
         
         if strcmp(timestamp_name, 'Chan078a')
-            count = count + 1;
             timestamp_name = 'Chan078b';
         end
         

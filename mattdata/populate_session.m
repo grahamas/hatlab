@@ -21,6 +21,7 @@ broadcast_beh = repmat(session.beh, 1,1,num_channels);
 channels = session.channel;
 num_behaviors = length(session.beh);
 
+parpool('local', 16)
 parfor ii = 1:num_channels
     
     if isempty(channels(ii).lfp)

@@ -10,8 +10,8 @@ new_columns_name = 'analysis_columns_050225.mat';
 base_session = parse_rs_files(snr_file, lfp_file, spike_file);
 session = populate_session(base_session, definitions);
 
-save(new_session_name, session);
+save(new_session_name, 'session', '-v7.3');
 
-analysis_columns = get_analysis_columns(session, definitions);
+[consistency, firing_rate, spike_width, epoch, band] = get_analysis_columns(session, definitions);
 
-save(new_columns_name, analysis_columns);
+save(new_columns_name, 'consistency', 'firing_rate', 'spike_width', 'epoch', 'band', '-v7.3');

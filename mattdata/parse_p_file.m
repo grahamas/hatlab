@@ -34,6 +34,8 @@ for ii = 1:num_good_units
                 continue
             end
         end
+        chan_num
+        num_units
         these_spike_times = goodUnits(ii).stamps;        
         base_session.channel(chan_num).unit(num_units).spike_times...
             = these_spike_times;
