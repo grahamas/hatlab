@@ -9,3 +9,4 @@
 *.fig
 .TOOLS_EXCLUDE
 OLD
+.OLD
