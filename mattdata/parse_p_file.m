@@ -12,6 +12,10 @@ num_good_units = length(goodUnits);
 prev_chan_num = 0;
 num_units = 1;
 for ii = 1:num_good_units
+    % Each row of goodUnits has:
+    %   1. spike timestamps
+    %   2. channel number
+    %   3. binned spikes (not used here)
     chan_num = goodUnits(ii).chan;
     
     if chan_num < prev_chan_num
@@ -36,6 +40,8 @@ for ii = 1:num_good_units
         base_session.channel(chan_num).unit(num_units).width...
             = trough_peak_width(waveforms(ismember(spikeTimes,these_spike_times),:));
     end
+    prev_chan_num = chan_num;
+end
 end
 
 

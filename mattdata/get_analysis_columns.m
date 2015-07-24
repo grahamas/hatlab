@@ -1,3 +1,4 @@
+function [consistency, firing_rate, spike_width, epoch] = get_analysis_columns(session, definitions)
 
 num_channels = length(session.channel);
 
@@ -16,8 +17,6 @@ firing_rate = [];
 spike_width = [];
 epoch = [];
 
-'start'
-
 for ii = 1:num_channels
     channel = session.channel(ii);
     num_units = length(channel.unit);
@@ -29,11 +28,13 @@ for ii = 1:num_channels
         num_epochs = size(ppc, 2);
         for kk = 1:num_bands
             for ll = 1:num_epochs
-                this_consistency = squeeze(ppc(kk, ll, :));
+                this_consistency = ppc(kk, ll, :);
                 consistency = [consistency;
                     this_consistency];
-                epoch = [epoch;
-                    repmat(definitions.epochs.list_all(ll), size(this_consistency))];
+                size(epoch)
+                size(repmat(definitions.epochs.list_all{ll}, size(this_consistency)))
+                epoch = [epoch; 
+                    repmat(definitions.epochs.list_all{ll}, size(this_consistency))];
                 firing_rate = [firing_rate;...
                     repmat(unit_firing_rate, size(this_consistency))];
                 spike_width = [spike_width;...
@@ -42,13 +43,6 @@ for ii = 1:num_channels
         end
     end
 end
-                
-'done'
-
-save('analysis_session_2.mat', 'consistency', 'firing_rate',...
-    'spike_width', 'epoch');
-    
-narrow_waveform = spike_width < 10;
 
 % Removed firing rate because no effect
 % tbl = table(consistency,'VariableNames', {'consistency'});
@@ -60,3 +54,5 @@ narrow_waveform = spike_width < 10;
 % [p, tbl, stats, terms] = anovan(consistency, {firing_rate, spike_width,...
 %     epoch}, 'varnames', {'firing_rate', 'spike_width', 'epoch'},...
 %     'model', 'interaction');
+
+end
