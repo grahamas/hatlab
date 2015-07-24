@@ -29,11 +29,11 @@ for ii = 1:num_channels
         num_epochs = size(ppc, 2);
         for kk = 1:num_bands
             for ll = 1:num_epochs
-                this_consistency = ppc(kk, ll, :);
+                this_consistency = squeeze(ppc(kk, ll, :));
                 consistency = [consistency;
                     this_consistency];
-                epoch = [epoch; 
-                    repmat(definitions.epochs.list_all{ll}, size(this_consistency))];
+                epoch = [epoch;
+                    repmat(definitions.epochs.list_all(ll), size(this_consistency))];
                 firing_rate = [firing_rate;...
                     repmat(unit_firing_rate, size(this_consistency))];
                 spike_width = [spike_width;...
