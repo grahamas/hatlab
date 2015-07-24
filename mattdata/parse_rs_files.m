@@ -56,6 +56,7 @@ for ii = 1:num_units
                 these_nev_spike_times),:));
     end
     prev_chan_num = chan_num;
+    
 end
 end
 
