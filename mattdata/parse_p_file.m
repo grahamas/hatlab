@@ -7,6 +7,8 @@ base_session = {};
 base_session.beh = beh;
 base_session.channel = {};
 
+base_session.lfpfs = 1000;
+
 num_good_units = length(goodUnits);
 
 prev_chan_num = 0;
@@ -44,6 +46,7 @@ for ii = 1:num_good_units
     end
     prev_chan_num = chan_num;
 end
+
 end
 
 
