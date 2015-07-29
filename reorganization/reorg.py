@@ -1,14 +1,28 @@
 #!/usr/bin/env python
 
-#### WOW THIS IS TERRIBLE
-#### PLEASE NOTE
-#### THIS ASSUMES THAT A UNIX FILESYSTEM
-#### HAS THE SHARED DRIVE
-#### ROOTED AT THE SECOND LEVEL
-#### E.G. /media/nicholab
-#### GOD HELP US ALL
+########################################
+################ CONFIG ################
+########################################
 
-#### THIS ASSUMPTION IS MADE IN fix_path
+#### Run config #####
+# Extensions to copy/verify. WITH DOT.
+# ONLY_THESE_EXTS = None # copies all
+ONLY_THESE_EXTS = ['.nev']
+#####################
+
+### System config ###
+# Depth at which the shared drive is rooted
+WINDOWS_DEPTH = 0;
+UNIX_DEPTH = 2;
+#####################
+
+########################################
+########################################
+########################################
+
+#####################
+###### Imports ######
+#####################
 
 import re
 import os
@@ -22,10 +36,16 @@ import datetime
 
 import safe_file_ops as sop
 
-###### Constants #######
+#####################
+#####################
+#####################
 
-RECORD_FNAME = 'record.json' #oldname
-UNPDICT_FNAME = 'unpdict.json' #newname
+########################
+###### Constants #######
+########################
+
+RECORD_FNAME = 'record.json'
+UNPDICT_FNAME = 'unpdict.json'
 UNKNOWN_PATH = 'UNKNOWN'
 
 SOURCE_RECORD_FNAME = 'source_record.json'
@@ -64,9 +84,9 @@ def organized_files_from_source_files(source_files, organized_files={}, log=sys.
 def fix_path(path):
     new_path = sop.split_path(path)
     if new_path[0] == '':
-        new_path = new_path[3:] # BAAAAAAD
+        new_path = new_path[UNIX_DEPTH+1:] # BAAAAAAD
     elif ':' in new_path[0]:
-        new_path = new_path[1:] # BAAAAAAD
+        new_path = new_path[WINDOWS_DEPTH+1:] # BAAAAAAD
     else:
         raise ValueError("Ambiguous (or relative) path: " + path)
     return os.path.join(root,*new_path)
@@ -588,11 +608,11 @@ else:
 
 if full_run:
     write_record(source_files, target_monkey_dir, record_fname=SOURCE_RECORD_FNAME)
-    copy_files(source_files, organized_files, only_ext=['.nev'])
+    copy_files(source_files, organized_files, only_ext=ONLY_THESE_EXTS)
     write_record(organized_files, target_monkey_dir, record_fname=ORGANIZED_RECORD_FNAME)
 
 if check_integrity:
-    check_integrity(source_files, organized_files, only_ext=['.nev'])
+    check_integrity(source_files, organized_files, only_ext=ONLY_THESE_EXTS)
     write_record(source_files, target_monkey_dir, record_fname=SOURCE_RECORD_FNAME)
     write_record(organized_files, target_monkey_dir, record_fname=ORGANIZED_RECORD_FNAME)
 
