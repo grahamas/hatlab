@@ -10,3 +10,5 @@
 .TOOLS_EXCLUDE
 OLD
 .OLD
+*.png
+*.swo

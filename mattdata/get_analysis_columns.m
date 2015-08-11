@@ -33,7 +33,9 @@ for ii = 1:num_channels
         for kk = 1:num_bands
             for ll = 1:num_epochs
                 this_consistency = squeeze(ppc(kk, ll, :));
-                this_firing_rate = squeeze(unit_firing_rate(kk,ll,:));
+                dx = ~isnan(this_consistency);
+                this_consistency = this_consistency(dx);
+                this_firing_rate = squeeze(unit_firing_rate(kk,ll,dx));
                 consistency = [consistency;
                     this_consistency];
                 epoch = [epoch; 
