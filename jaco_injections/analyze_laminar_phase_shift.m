@@ -66,7 +66,7 @@ for file_name = file_names
         band_name = band_names{band_num};
         band_cutoffs = bands.(band_name);
         lfp_angles = cell(1,num_lfps);
-        for lfp_num = 1:num_lfps
+        parfor lfp_num = 1:num_lfps
             lfp = lfpdeci{lfp_num};
             filtered_lfp = bandpass_filt(lfp, band_cutoffs);
             lfp_angles{lfp_num} = angle(hilbert(filtered_lfp));
@@ -76,7 +76,7 @@ for file_name = file_names
         tau = 1:period_bin_num;
         phase_shifts = zeros(num_lfps, num_lfps);
         for ii = 1:num_lfps-1
-            for jj = ii+1:num_lfps
+            parfor jj = ii+1:num_lfps
                 [max_angle, max_angle_dx] = max(calc_phase_shift(lfp_angles{ii}, lfp_angles(jj), tau));
                 phase_shifts(ii, jj) = tau(max_angle_dx);
             end
