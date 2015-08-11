@@ -53,7 +53,6 @@ bands.theta = [4,8];
 bands.alpha = [8,12];
 bands.beta = [12,32];
 bands.gamma = [32,maxpass];
-or i
 
 params.Fs = 2000;
 params.fpass = [0,maxpass];

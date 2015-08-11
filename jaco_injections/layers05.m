@@ -46,12 +46,16 @@ layers = [2, 4, 30, 17, 34, 36, 62, 49;...
 goodchs14 = [9:31, 39:63];
 goodchs05 = [3:32, 35:64];
 
-bandnames={'delta','theta','alpha','beta','gamma'};
+bandnames={'delta','theta','alpha','beta', 'low_beta', 'low_mid_beta', 'mid_beta', 'high_beta','gamma'};
 
 bands.delta = [1,4];
 bands.theta = [4,8];
 bands.alpha = [8,12];
 bands.beta = [12,32];
+bands.low_beta = [12,17];
+bands.low_mid_beta = [17,22];
+bands.mid_beta = [22,27];
+bands.high_beta = [27,32];
 bands.gamma = [32,maxpass];
 
 params.Fs = 2000;
