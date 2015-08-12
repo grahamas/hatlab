@@ -73,7 +73,6 @@ for file_name = file_names
         end
         period_sec = 1/max(band_cutoffs);
         period_bin_num = period_sec * params.Fs;
-        half_max_bin_num = period_bin_num / 2;
         tau = 1:period_bin_num;
         phase_shifts = zeros(num_lfps,1); % num_lfps);
         %for ii = 1:num_lfps-1
