@@ -1,4 +1,4 @@
-function clusters = cluster_phase_shifts( phase_shifts_by_band, bands, num_clusters )
+function clusters = cluster_phase_shifts( phase_shifts_by_band, bands, num_clusters)
 %CLUSTER_PHASE_SHIFTS The first argument is a cell that is indexed by band
 %names. Within each cell is a matrix of phase shifts at that band
 %(symmetric by construction). The second argument is a cell array of band
@@ -16,6 +16,7 @@ for ii = 1:num_bands
 end
 
 clusters = kmeans(data, num_clusters);
+
 
 end
 

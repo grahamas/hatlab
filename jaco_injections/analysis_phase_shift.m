@@ -7,8 +7,9 @@ for ii = 1:num_bands
     band_numbers.(band_names{ii}) = ii;
 end
 
-BANDS = band_names;
 NUM_CLUSTERS = 6;
+
+maxpass = 55;
 
 layers = [2, 4, 30, 17, 34, 36, 62, 49;...
           13, 3, 29, 31, 45, 35, 61, 63;...
@@ -33,7 +34,8 @@ params.Fs = 2000;
 params.fpass = [0,maxpass];
 params.trialave = 0;
 
-phase_shift_mat = cellfun(@(band_name) phase_shifts_by_band.(band_name));
+phase_shift_mat = cell2mat(cellfun(@(band_name) phase_shifts_by_band.(band_name),...
+    band_names, 'UniformOutput', false));
 NUM_COLS = size(phase_shifts_by_band.(band_names{1}), 2);
 
 for ii = 1:num_bands
@@ -45,16 +47,16 @@ for ii = 1:num_bands
     period_bin_num = period_sec * params.Fs;
     half_max_bin = period_bin_num / 2;
     phase_shift_mat(:, band_start:band_stop) = ...
-        abs(phase_shift_mat(:,band_start:band_stop) - half_max_bin);
+        abs(phase_shift_mat(:,band_start:band_stop) - half_max_bin) / half_max_bin;
 end
 
 'clustering by all bands'
-clusters_all = cluster_phase_shifts(phase_shifts_by_band, BANDS, NUM_CLUSTERS);
+clusters_all = kmeans(phase_shift_mat, NUM_CLUSTERS);
 '... done.'
 
 'clustering by beta bands'
-BETA_BANDS = {'low_beta', 'low_mid_beta', 'mid_beta', 'high_beta'};
-clusters_beta = cluster_phase_shifts(phase_shifts_by_band, BETA_BANDS, NUM_CLUSTERS);
+BETA_BANDS = [4,5,6,7];
+clusters_beta = kmeans(phase_shift_mat(:, BETA_BANDS), NUM_CLUSTERS);
 '... done'
 
 cluster_grid_all = clusters_all(layers)

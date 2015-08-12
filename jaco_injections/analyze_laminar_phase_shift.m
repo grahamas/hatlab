@@ -84,7 +84,6 @@ for file_name = file_names
                 phase_shifts(ii, jj) = tau(max_angle_dx);
             end
         end
-        phase_shifts = phase_shifts + phase_shifts';
         phase_shifts_by_band.(band_name) = phase_shifts;
     end
     save([base_name,phase_shifts_ext], 'phase_shifts_by_band', '-v7.3');
