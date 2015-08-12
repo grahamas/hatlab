@@ -1,7 +1,7 @@
 addpath(genpath('/home/grahams/chronux'))
 
 day_dir = '/home/grahams/jaco_injections/';
-file_names = {'20140505/J20140505_M1Contra'};
+file_names = {'20140505/J05052014001'};
 
 lfp_ext = '_LFP.mat';
 phase_shifts_ext = '_phase_shifts.mat';
@@ -52,7 +52,7 @@ goodchs = goodchs05;
 %%%%%%%%
 
 calc_phase_shift = @(angles1, angles2, shifts) arrayfun(@(shift) sum(abs(angles1(1:end-shift) - angles2(shift+1:end))), shifts);
-
+parpool('local', 16)
 for file_name = file_names
     name = file_name{:};
     base_name = [day_dir,name];
@@ -84,9 +84,8 @@ for file_name = file_names
         phase_shifts = phase_shifts + phase_shifts';
         phase_shifts_by_band.(band_name) = phase_shifts;
     end
-    save([base_name,phase_shifts_ext], phase_shifts_by_band, '-v7.3');
+    save([base_name,phase_shifts_ext], 'phase_shifts_by_band', '-v7.3');
 end
                 
         
 
-end
