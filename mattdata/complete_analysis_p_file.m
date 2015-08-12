@@ -11,6 +11,7 @@ save('new_session_040114.mat', 'session', '-v7.3')
 
 save('new_analysis_columns_040114.mat', 'consistency', 'firing_rate', 'spike_width', 'epoch', 'band', '-v7.3')
 
+TARGET_BAND = 'mid_beta';
 analysis_script
 
 tbl
