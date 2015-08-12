@@ -73,13 +73,15 @@ for file_name = file_names
         end
         period_sec = 1/max(band_cutoffs);
         period_bin_num = period_sec * params.Fs;
+        half_max_bin_num = period_bin_num / 2;
         tau = 1:period_bin_num;
         phase_shifts = zeros(num_lfps,1); % num_lfps);
         %for ii = 1:num_lfps-1
         for ii = 1:1 % Temporary optimization while using 1 as reference.
+            fprintf('Starting %d\n',ii);
             lfp_angles_ii = lfp_angles{ii};
             parfor jj = ii+1:num_lfps
-                [max_angle, max_angle_dx] = max(calc_phase_shift(lfp_angles_ii, lfp_angles(jj), tau));
+                [max_angle, max_angle_dx] = max(calc_phase_shift(lfp_angles_ii, lfp_angles{jj}, tau));
                 phase_shifts(ii, jj) = tau(max_angle_dx);
             end
         end
