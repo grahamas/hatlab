@@ -10,3 +10,7 @@ save('new_session_040114.mat', 'session', '-v7.3')
 [consistency, firing_rate, spike_width, epoch, band] = get_analysis_columns(session, definitions); 
 
 save('new_analysis_columns_040114.mat', 'consistency', 'firing_rate', 'spike_width', 'epoch', 'band', '-v7.3')
+
+analysis_script
+
+tbl
