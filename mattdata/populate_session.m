@@ -67,6 +67,7 @@ parfor ii = 1:num_channels
                 epoch_name = defined_epochs{kk};
                 epoch_func = these_definitions.epochs.(epoch_name);
                 epoch_time = epoch_func(broadcast_beh(:,:,ii));
+                assert(size(epoch_time, 1) == 391)
                 for ll = 1:num_behaviors
                     time = epoch_time(ll,:);
                     epoch_spike_dx = spike_times >= time(1)...
