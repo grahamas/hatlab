@@ -4,7 +4,7 @@ if exist('band', 'var')
 else
     band_select = ones(size(consistency));
 end
-not_isnan = ~isnan(consistency);
+not_isnan = ~isnan(consistency) & firing_rate > 4;
 select = not_isnan & band_select;
 narrow_width = spike_width < 10;
 
