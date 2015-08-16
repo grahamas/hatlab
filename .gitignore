@@ -8,3 +8,5 @@
 *.batch
 *.fig
 .TOOLS_EXCLUDE
+.OLD
+png

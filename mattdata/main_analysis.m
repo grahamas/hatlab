@@ -2,27 +2,21 @@
 num_channels = length(all_channels);
 
 lfp_fs = 1000;
-global_moving_win = [2, .1];
-local_moving_win = [.1, .01];
-params = struct('Fs', lfp_fs, 'tapers', [3 5], 'fpass', [0 80]);
 
-relevant_behaviors = [1, 3, 4, 5, 6, 7];
-relevant_beh = beh(:, relevant_behaviors) * lfp_fs;
 num_behaviors = size(beh, 1);
-before_start = 2 * lfp_fs;
-after_reward = .5 * lfp_fs;
 
-for ii = 1:4
+for ii = 1:num_channels
+    'main'
+    ii
     if isempty(all_channels(ii).unit)
         continue
     end
     units = all_channels(ii).unit;
     num_units = length(units);
     for jj = 1:num_units
-        unit_dx = units(jj);
-        
-        tp_width = trough_peak_width(unit_waveforms(unit_dx).waveform);
-        unit_waveforms(unit_dx).width = tp_width;
+        unit_dx = jj 
+        tp_width = trough_peak_width(all_channels(ii).unit_waveforms(unit_dx).waveform);
+        all_channels(ii).unit_waveforms(unit_dx).width = tp_width;
     end
     
 end

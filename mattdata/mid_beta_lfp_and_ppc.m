@@ -1,7 +1,4 @@
 
-if ~exist('all_channels', 'var')
-    load('all_channels.mat');
-end
 
 lfp_fs = 1000;
 spike_fs = 30000;

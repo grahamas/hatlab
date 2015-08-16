@@ -1,34 +1,32 @@
-if ~exist('all_channels', 'var')
-    load('all_channels_new.mat');
-end
-
-if ~exist('beh', 'var')
-    load('beh.mat');
-end
-
-lfp_fs = 1000;
 spike_fs = 30000;
 
 num_channels = length(all_channels);
         
+regimes = {'instruction_early', 'instruction_late', 'execution'}
+    
+num_regimes = length(regimes);
+num_behaviors = length(beh)
 
-
-parfor ii = 1:num_channels
+%parpool('local', 16)
+%parfor ii = 1:num_channels
+for ii = 1:num_channels
     if isempty(all_channels(ii).unit_waveforms)
         continue
     end
-    
-    regimes = {'instruction_early_sec', 'instruction_late_sec', 'execution_sec'}
-    
-    num_regimes = length(regimes);
-    num_behaviors = length(all_channels(ii).behavior_spectra);
-    
+
+    %all_channels(ii).behavior_spectra(num_behaviors) = {};
+    size(all_channels(ii).behavior_spectra)
+    lfp_times = (1/lfp_fs):(1/lfp_fs):(all_channels(ii).lfp);
+    all_channels(ii).mid_beta = mid_beta_filt(all_channels(ii).lfp);
+
     for jj = 1:length(all_channels(ii).unit_waveforms)
         temp_unit = all_channels(ii).unit_waveforms(jj);
         spike_times = temp_unit.timestamp ; %%% HERE BE PROBLEM
                     %%%% NOTE THAT THIS ASSUMES REGIMES IN SECONDS
                     %%%% NOT THE CASE!!!!
-        spike_angles = temp_unit.spike_angles;
+        spike_angles = spike_field_angles(...
+            spike_times, all_channels(ii).mid_beta, lfp_times);
+        all_channels(ii).unit_waveforms(jj).spike_angles = spike_angles;
         
         for kk = 1:num_regimes
             regime = regimes{kk};
@@ -61,7 +59,6 @@ parfor ii = 1:num_channels
 end
 '...done.'
        
-save('all_channels.mat', 'all_channels', '-v7.3')
             
             
             
