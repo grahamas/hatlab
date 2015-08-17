@@ -1,14 +1,21 @@
-addpath(genpath('/home/grahams/chronux'))
+%% ARBITRARY CONSTANTS
+MAX_PASS = 55;
+REFERENCE_DX = 1;
 
+%addpath(genpath('/home/grahams/chronux'))
+
+%% CONFIGURATION
 day_dir = '/home/grahams/jaco_injections/';
-file_names = {'20140505/J05052014001'};
+
+% A flimsy attempt at generalization. Should be extracted and loaded.
+date_list = {'20140505', '20140514'};
+file_name_list = {'20140505/J05052014001',...
+    '20140514/J20140514_M1Contra'};
+good_chs_list = {[3:32, 35:64],...
+    [9:31, 39:63]};
 
 lfp_ext = '_LFP.mat';
 phase_shifts_ext = '_phase_shifts.mat';
-
-maxpass = 55;
-
-ARB_CH = 3;
 
 layers = [2, 4, 30, 17, 34, 36, 62, 49;...
           13, 3, 29, 31, 45, 35, 61, 63;...
@@ -19,10 +26,8 @@ layers = [2, 4, 30, 17, 34, 36, 62, 49;...
           10, 16, 23, 21, 42, 48, 55, 53;...
           9, 11, 20, 22, 41, 43, 52, 54];
 
-goodchs14 = [9:31, 39:63];
-goodchs05 = [3:32, 35:64];
-
-band_names={'delta','theta','alpha','beta', 'low_beta', 'low_mid_beta', 'mid_beta', 'high_beta','gamma'};
+band_names={'delta','theta','alpha','beta', 'low_beta',...
+    'low_mid_beta', 'mid_beta', 'high_beta','gamma'};
 num_bands = length(band_names);
 
 bands.delta = [1,4];
@@ -35,26 +40,18 @@ bands.mid_beta = [22,27];
 bands.high_beta = [27,32];
 bands.gamma = [32,maxpass];
 
-params.Fs = 2000;
-params.fpass = [0,maxpass];
-params.trialave = 0;
-
-movingwin = [1, .5];
-
-%window_size = .1;
-%step_size = .025;
-
+lfp_fs = 2000;
 
 %%%%%%%%
 
-goodchs = goodchs05;
-
-%%%%%%%%
-
-calc_phase_shift = @(angles1, angles2, shifts) arrayfun(@(shift) sum(abs(angles1(1:end-shift) - angles2(shift+1:end))), shifts);
+calc_phase_shift = @(angles1, angles2, shifts)...
+    arrayfun(@(shift) sum(abs(angles1(1:end-shift) - angles2(shift+1:end))), shifts);
 parpool('local', 16)
-for file_name = file_names
-    name = file_name{:};
+for ii = 1:length(dates)
+    name = file_name_list{ii};
+    good_chs = good_chs_list{ii};
+    reference = good_chs(REFERENCE_DX);
+    
     base_name = [day_dir,name];
     lfp_name = [base_name, lfp_ext];
     load(lfp_name);
@@ -66,23 +63,20 @@ for file_name = file_names
         band_name = band_names{band_num};
         band_cutoffs = bands.(band_name);
         lfp_angles = cell(1,num_lfps);
-        parfor lfp_num = 1:num_lfps
+        parfor lfp_num = good_chs
             lfp = lfpdeci{lfp_num};
             filtered_lfp = bandpass_filt(lfp, band_cutoffs);
             lfp_angles{lfp_num} = angle(hilbert(filtered_lfp));
         end
         period_sec = 1/max(band_cutoffs);
         period_bin_num = period_sec * params.Fs;
-        tau = 1:period_bin_num;
-        phase_shifts = zeros(num_lfps,1); % num_lfps);
-        %for ii = 1:num_lfps-1
-        for ii = 1:1 % Temporary optimization while using 1 as reference.
-            fprintf('Starting %d\n',ii);
-            lfp_angles_ii = lfp_angles{ii};
-            parfor jj = ii+1:num_lfps
-                [max_angle, max_angle_dx] = max(calc_phase_shift(lfp_angles_ii, lfp_angles{jj}, tau));
-                phase_shifts(ii, jj) = tau(max_angle_dx);
-            end
+        possible_bin_shifts = 1:period_bin_num;
+        phase_shifts = nans(num_lfps,1); % num_lfps);
+        lfp_angles_ref = lfp_angles{reference};
+        parfor jj = good_chs
+            [max_angle, max_angle_dx] = ...
+                max(calc_phase_shift(lfp_angles_ref, lfp_angles{jj}, possible_bin_shifts));
+            phase_shifts(jj) = possible_bin_shifts(max_angle_dx);
         end
         phase_shifts_by_band.(band_name) = phase_shifts;
     end
