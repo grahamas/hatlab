@@ -2,10 +2,10 @@ spike_fs = 30000;
 
 num_channels = length(all_channels);
         
-regimes = {'instruction_early', 'instruction_late', 'execution'}
+regimes = {'instruction_early', 'instruction_late', 'execution'};
     
 num_regimes = length(regimes);
-num_behaviors = length(beh)
+num_behaviors = length(beh);
 
 %parpool('local', 16)
 %parfor ii = 1:num_channels
@@ -15,7 +15,6 @@ for ii = 1:num_channels
     end
 
     %all_channels(ii).behavior_spectra(num_behaviors) = {};
-    size(all_channels(ii).behavior_spectra)
     lfp_times = (1/lfp_fs):(1/lfp_fs):(all_channels(ii).lfp);
     all_channels(ii).mid_beta = mid_beta_filt(all_channels(ii).lfp);
 
@@ -47,12 +46,12 @@ for ii = 1:num_channels
                 
                 regime_spike_angles{ll} = these_spike_angles;
                 regime_spike_times{ll} = these_spike_times;
-                regime_spike_rates{ll} = length(these_spike_times) / (stop - start) % SECONDS DEPENDENCE
+                regime_spike_rates{ll} = length(these_spike_times) / (stop - start); % SECONDS DEPENDENCE
                 consistency(ll) = ppc_from_spike_angles(these_spike_angles);
             end
             all_channels(ii).unit_waveforms(jj).regime_spike_angles.(regime) = regime_spike_angles;
             all_channels(ii).unit_waveforms(jj).regime_spike_times.(regime) = regime_spike_times;
-            all_channels(ii).unit_waveforms(jj).regime_spike_rates.(regime) = regime_spike_rates
+            all_channels(ii).unit_waveforms(jj).regime_spike_rates.(regime) = regime_spike_rates;
             all_channels(ii).unit_waveforms(jj).regime_ppcs.(regime) = consistency;
         end
     end

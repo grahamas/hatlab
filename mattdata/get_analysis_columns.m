@@ -30,7 +30,7 @@ for ii = 1:num_channels
                 %could be flattened, but complexity.
                 
                 this_width = this_unit.width;
-                this_rate = these_rates(ll);
+                this_rate = these_rates{ll};
                 this_ppc = these_ppcs(ll);
                 
                 epoch{end+1} = this_regime;

@@ -37,12 +37,9 @@ for ii = 1:num_units
     timestamp_name = ['Chan',chan_str,unit_str];
     
     if strcmp(timestamp_name, 'Chan078a')
-        count = count + 1;
         timestamp_name = 'Chan078b';
     end
     cur_num_chans = length(all_channels);
-    all_channels
-    size(all_channels)
     if count == 1
         all_channels(chan).unit = [ii];
     else

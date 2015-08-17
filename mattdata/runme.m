@@ -8,7 +8,9 @@ load('beh.mat')
 combine_all_units
 'main'
 main_analysis
-'regimes'
+'new_regimes'
+new_regimes
+'ppcs'
 calc_regime_ppc
 'columns'
 get_analysis_columns
