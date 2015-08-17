@@ -17,7 +17,7 @@ good_chs_list = {[3:32, 35:64],...
 lfp_ext = '_LFP.mat';
 phase_shifts_ext = '_phase_shifts.mat';
 
-layers = [2, 4, 30, 17, 34, 36, 62, 49;...
+physical_mapping = [2, 4, 30, 17, 34, 36, 62, 49;...
           13, 3, 29, 31, 45, 35, 61, 63;...
           6, 8, 27, 32, 38, 40, 59, 64;...
           1, 7, 28, 26, 33, 39, 60, 58;...
@@ -25,10 +25,16 @@ layers = [2, 4, 30, 17, 34, 36, 62, 49;...
           5, 15, 24, 18, 37, 47, 56, 50;...
           10, 16, 23, 21, 42, 48, 55, 53;...
           9, 11, 20, 22, 41, 43, 52, 54];
+vertical_planes = {[1:8, 1:4], [1:8, 5:8]};
+% so raw_data(physical_mapping(vertical_planes{1})) would get 
+% the data from the first horizontal layer.
 
-band_names={'delta','theta','alpha','beta', 'low_beta',...
-    'low_mid_beta', 'mid_beta', 'high_beta','gamma'};
+band_names={'delta','theta','alpha','beta', 'low_beta', 'low_mid_beta', 'mid_beta', 'high_beta','gamma'};
 num_bands = length(band_names);
+band_numbers = struct();
+for ii = 1:num_bands
+    band_numbers.(band_names{ii}) = ii;
+end
 
 bands.delta = [1,4];
 bands.theta = [4,8];
@@ -47,7 +53,7 @@ lfp_fs = 2000;
 calc_phase_shift = @(angles1, angles2, shifts)...
     arrayfun(@(shift) sum(abs(angles1(1:end-shift) - angles2(shift+1:end))), shifts);
 parpool('local', 16)
-for ii = 1:length(dates)
+for ii = 1:length(date_list)
     name = file_name_list{ii};
     good_chs = good_chs_list{ii};
     reference = good_chs(REFERENCE_DX);
