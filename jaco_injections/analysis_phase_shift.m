@@ -65,7 +65,7 @@ for day_num = 1:length(date_list)
         band_start = ((ii - 1) * NUM_COLS) + 1;
         band_stop = band_start + NUM_COLS - 1;
         period_sec = 1 / max(bands.(band_name));
-        period_bin_num = period_sec * params.Fs;
+        period_bin_num = period_sec * lfp_fs;
         half_max_bin = period_bin_num / 2;
         phase_shift_mat(:, band_start:band_stop) = ...
             abs(phase_shift_mat(:,band_start:band_stop) - half_max_bin) / half_max_bin;
