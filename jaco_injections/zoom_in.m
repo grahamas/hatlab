@@ -11,6 +11,7 @@ for day_num = 1:length(day_list)
     file_name = file_name_list{day_num};
     good_chs = good_chs_list{day_num};
     windows = windows_list{day_num};
+    num_windows = length(windows);
     
     base_name = [day_dir,file_name];
     spec_name = [base_name, spec_ext];

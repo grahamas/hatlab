@@ -3,15 +3,16 @@ layers_config
 
 %%%%%%%%
 num_bands = length(bands);
-num_windows = length(windows);
 calc_phase_shift = @(angles1, angles2, shifts)...
-    arrayfun(@(shift) sum(abs(angles1(1:end-shift) - angles2(shift+1:end))), shifts);
+    arrayfun(@(shift) mean(abs(angles1(1:end-shift) - angles2(shift+1:end))), shifts);
 parpool('local', 16)
 for ii = 1:length(date_list)
     fprintf('\n%d\n',ii)
     name = file_name_list{ii};
     good_chs = good_chs_list{ii};
     reference = good_chs(REFERENCE_DX);
+    windows = windows_list{ii};
+    num_windows = length(windows);
     
     base_name = [day_dir,name];
     lfp_name = [base_name, lfp_ext];
@@ -50,7 +51,7 @@ for ii = 1:length(date_list)
         end
         period_sec = 1/max(band_cutoffs);
         period_bin_num = period_sec * lfp_fs;
-        possible_bin_shifts = 1:period_bin_num;
+        possible_bin_shifts = 0:period_bin_num;
         phase_shifts = nan(num_lfps,num_windows+1); % num_lfps);
         lfp_angles_ref = band_lfp_angles{reference};
         
@@ -65,15 +66,16 @@ for ii = 1:length(date_list)
             these_phase_shifts(num_windows+1) = possible_bin_shifts(max_angle_dx);
             for kk = 1:num_windows
                 window = windows{kk} * 60;
-                [max_angle, max_angle_dx] = ...
-                    max(calc_phase_shift(lfp_angles_ref(window_lfp_dx{kk}),...
+                [min_diff, min_diff_dx] = ...
+                    min(calc_phase_shift(lfp_angles_ref(window_lfp_dx{kk}),...
                         band_lfp_angles{jj}(window_lfp_dx{kk}), possible_bin_shifts));
-                these_phase_shifts(kk) = possible_bin_shifts(max_angle_dx);
+                these_phase_shifts(kk) = possible_bin_shifts(min_diff_dx);
             end
             phase_shifts(jj,:) = these_phase_shifts;
         end
         phase_shifts_by_band.(band_name) = phase_shifts;
-        if strcmp(band_name, 'beta')
+        if band_num == 4 
+            fprintf('found beta band\n')
             beta_lfp_angles = band_lfp_angles;
             beta_lfp_amplitudes = band_lfp_amplitudes;
         end

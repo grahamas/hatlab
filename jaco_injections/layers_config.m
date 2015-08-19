@@ -41,6 +41,7 @@ physical_mapping = [2, 4, 30, 17, 34, 36, 62, 49;...
           5, 15, 24, 18, 37, 47, 56, 50;...
           10, 16, 23, 21, 42, 48, 55, 53;...
           9, 11, 20, 22, 41, 43, 52, 54];
+num_layers = size(physical_mapping, 2);
 vertical_planes = {[1:8, 1:4], [1:8, 5:8]};
 % so raw_data(physical_mapping(vertical_planes{1})) would get 
 % the data from the first horizontal layer.
@@ -66,7 +67,8 @@ bands.mid_beta = [22,27];
 bands.high_beta = [27,32];
 
 % IN MINUTES
-windows_list = {{[2,8],[9,14],[14.5,17],[18,23]},...
+%windows_list = {{[2,8],[9,14],[14.5,17],[18,23]},...
+windows_list = {{[5,10],[11,15], [15,20], [20,24]}, 
     {[7,13.5], [14,19.5], [20,25.5], [26,35]}};
 
 lfp_fs = 2000;
