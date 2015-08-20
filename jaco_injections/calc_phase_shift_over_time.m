@@ -24,8 +24,8 @@ for ii = 1:length(date_list)
         [good_over_time, time] = phase_shift_over_time(good_beta_angles,...
             1, moving_win);
         this_plane = vertical_planes{plane_num};
-        full_over_time = nan(length(this_plane{1}), length(this_plane{2}));
-        full_over_time(good_physical) = good_over_time;
+        full_over_time = nan(length(this_plane{1}), length(this_plane{2}), length(time));
+        full_over_time(repmat(good_physical(this_plane{1}, this_plane{2}), 1, 1, length(time))) = good_over_time;
         over_time{plane_num} = full_over_time;
         time{plane_num} = time;
     end
