@@ -42,7 +42,7 @@ physical_mapping = [2, 4, 30, 17, 34, 36, 62, 49;...
           10, 16, 23, 21, 42, 48, 55, 53;...
           9, 11, 20, 22, 41, 43, 52, 54];
 num_layers = size(physical_mapping, 2);
-vertical_planes = {[1:8, 1:4], [1:8, 5:8]};
+vertical_planes = {{1:8, 1:4}, {1:8, 5:8}};
 % so raw_data(physical_mapping(vertical_planes{1})) would get 
 % the data from the first horizontal layer.
 
