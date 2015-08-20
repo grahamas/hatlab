@@ -27,15 +27,12 @@ for date_num = 1:length(date_list)
     %time = (1/lfp_fs):(1/lfp_fs):(size(lfp_mat,2)/lfp_fs);
 
     beta_mat = nan(num_chans,length(t));
-    size(S)
-    size(f)
-    beta_mat(good_chs, :) = band_from_spec(S(:,:,good_chs),f,bands.beta);
+    beta_mat(good_chs, :) = band_from_spec(S(:,:,good_chs).^2,f,bands.beta);
 
     window_dx_list = cell(num_windows, 1);
     for w_num = 1:num_windows
-        window_mins = windows{w_num};
-        window_bins = window_mins * 60 * lfp_fs;
-        window_dx_list{w_num} = window_bins(1):window_bins(2);
+        window_sec = windows{w_num} * 60;
+        window_dx_list{w_num} = window_sec(1) <= t & t < window_sec(2);
     end
     
     fprintf('beta layer\n') 
@@ -43,7 +40,7 @@ for date_num = 1:length(date_list)
     for l_num = 1:num_layers
         this_layer = physical_mapping(l_num, :);
         good_layer_dx = this_layer(arrayfun(is_good_ch, this_layer));
-        beta_layer_mat(l_num,:) = smooth(log10(mean(beta_mat(good_layer_dx,:),1)),200000);
+        beta_layer_mat(l_num,:) = smooth(log10(mean(beta_mat(good_layer_dx,:),1)),200);
     end
     colors = jet(8);
     fprintf('plotting\n')
@@ -58,8 +55,7 @@ for date_num = 1:length(date_list)
                 'color', colors(l_num,:)); % t from mtspecgramc
         end
         window = windows{w_num};
-        xlim([t(window_dx(1)),t(window_dx(end))]./60) % t from mtspecgramc
-        ylim([0, 2])
+        xlim([min(t(window_dx)),max(t(window_dx))]./60) % t from mtspecgramc
     end
     fprintf('done plotting.\n')
     legend({'1','2','3','4','5','6','7','8(deep)'})

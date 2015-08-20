@@ -2,7 +2,7 @@
 layers_config
 
 %%%%%%%%
-num_bands = length(bands);
+num_bands = length(band_names);
 calc_phase_shift = @(angles1, angles2, shifts)...
     arrayfun(@(shift) mean(abs(angles1(1:end-shift) - angles2(shift+1:end))), shifts);
 parpool('local', 16)
@@ -74,7 +74,7 @@ for ii = 1:length(date_list)
             phase_shifts(jj,:) = these_phase_shifts;
         end
         phase_shifts_by_band.(band_name) = phase_shifts;
-        if band_num == 4 
+        if strcmp(band_name, 'beta') 
             fprintf('found beta band\n')
             beta_lfp_angles = band_lfp_angles;
             beta_lfp_amplitudes = band_lfp_amplitudes;
