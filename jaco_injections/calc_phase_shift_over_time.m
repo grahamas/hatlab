@@ -2,6 +2,7 @@ layers_config
 
 moving_win = round([1, .5] * lfp_fs);
 all_over_time = cell(length(date_list), 1);
+all_time = cell(length(date_list),1);
 for ii = 1:length(date_list)
     file_name = file_name_list{ii};
     good_chs = good_chs_list{ii};
@@ -19,17 +20,20 @@ for ii = 1:length(date_list)
     
     num_planes = length(vertical_planes);
     over_time = cell(num_planes, 1);
+    time = cell(num_planes, 1);
     for plane_num = 1:num_planes
         fprintf('plane num: %d\n', plane_num);
         good_beta_angles = good_physical_mask(beta_lfp_angles, plane_num);
-        [good_over_time, time] = phase_shift_over_time(good_beta_angles,...
+        [good_over_time, t] = phase_shift_over_time(good_beta_angles,...
             1, moving_win);
         this_plane = vertical_planes{plane_num};
-        full_over_time = nan(length(this_plane{1}), length(this_plane{2}), length(time));
-        full_over_time(repmat(good_physical(this_plane{1}, this_plane{2}), 1, 1, length(time))) = good_over_time;
+        full_over_time = nan(length(this_plane{1}), length(this_plane{2}), length(t));
+        full_over_time(repmat(good_physical(this_plane{1}, this_plane{2}), 1, 1, length(t))) = good_over_time;
         over_time{plane_num} = full_over_time;
-        time{plane_num} = time;
+        time{plane_num} = t;
     end
+    all_over_time{ii} = over_time;
+    all_time{ii} = time;
 end
 
 save([base_name, '_phase_shift_over_time.mat'], 'all_over_time', '-v7.3')
