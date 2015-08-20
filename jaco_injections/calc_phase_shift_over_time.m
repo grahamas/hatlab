@@ -5,7 +5,7 @@ all_over_time = cell(length(date_list), 1);
 for ii = 1:length(date_list)
     file_name = file_name_list{ii};
     good_chs = good_chs_list{ii};
-    
+    fprintf('On %s\n',file_name)
     base_name = [day_dir, file_name];
     phase_shifts_name = [base_name, phase_shifts_ext];
     
@@ -20,6 +20,7 @@ for ii = 1:length(date_list)
     num_planes = length(vertical_planes);
     over_time = cell(num_planes, 1);
     for plane_num = 1:num_planes
+        fprintf('plane num: %d\n', plane_num);
         good_beta_angles = good_physical_mask(beta_lfp_angles, plane_num);
         [good_over_time, time] = phase_shift_over_time(good_beta_angles,...
             1, moving_win);
