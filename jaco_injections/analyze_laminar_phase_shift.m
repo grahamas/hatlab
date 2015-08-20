@@ -2,7 +2,7 @@
 layers_config
 
 %%%%%%%%
-num_bands = length(bands);
+num_bands = length(band_names);
 calc_phase_shift = @(angles1, angles2, shifts)...
     arrayfun(@(shift) mean(abs(angles1(1:end-shift) - angles2(shift+1:end))), shifts);
 parpool('local', 16)
