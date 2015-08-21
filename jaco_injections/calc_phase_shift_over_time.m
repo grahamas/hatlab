@@ -24,6 +24,7 @@ for ii = 1:length(date_list)
     for plane_num = 1:num_planes
         fprintf('plane num: %d\n', plane_num);
         good_beta_angles = good_physical_mask(beta_lfp_angles, plane_num);
+        fprintf('good channels: %s\n',length(good_beta_angles))
         [good_over_time, t] = phase_shift_over_time(good_beta_angles,...
             1, moving_win);
         this_plane = vertical_planes{plane_num};
