@@ -15,7 +15,7 @@ num_windows = length(window_ends);
 return_phase_shifts_over_time = zeros(num_windows,num_units);
 bin_times = zeros(num_windows, 1);
 
-parfor ii = 1:num_windows
+for ii = 1:num_windows
     window_end = window_ends(ii);
     window_start = window_end - window_width + 1;
     window = window_start:window_end;

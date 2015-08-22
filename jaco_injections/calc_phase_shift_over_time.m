@@ -1,6 +1,6 @@
 layers_config
 
-moving_win = round([1, .5] * lfp_fs);
+moving_win = round([.1, .01] * lfp_fs);
 all_over_time = cell(length(date_list), 1);
 all_time = cell(length(date_list),1);
 for ii = 1:length(date_list)
@@ -37,4 +37,4 @@ for ii = 1:length(date_list)
     all_time{ii} = time;
 end
 
-save([base_name, '_phase_shift_over_time.mat'], 'all_over_time', '-v7.3')
+save([base_name, '_phase_shift_over_time_hr.mat'], 'all_over_time','time', '-v7.3')
