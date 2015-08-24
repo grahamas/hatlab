@@ -1,4 +1,4 @@
-function [ output_args ] = LOAD_rs_clean_SNR_LFP( dp_data, fn_to_load_list )
+function [ output_args ] = LOAD_rs_clean_SNR_LFP(obj, dp_data, fn_to_load_list )
 
 EXPECTED_n_data_files = 3;
 
