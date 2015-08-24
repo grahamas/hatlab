@@ -1,4 +1,4 @@
-function [ output_args ] = LOAD_rj_P_clean_LFP(obj, dp_data, fn_to_load_list )
+function LOAD_rj_P_clean_LFP(obj, dp_data, fn_to_load_list )
 
     disp('HI THERE')
 

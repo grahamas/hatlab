@@ -15,6 +15,10 @@ classdef ChannelRecording
             obj.parent_array = parent_array;
             obj.channel_number = channel_number;
             obj.LFP = LFP;
+            obj.unit_list = [];
+        end
+        function add_unit(obj, new_unit)
+            obj.unit_list{end+1} = new_unit;
         end
     end
     

@@ -6,12 +6,14 @@ classdef ArrayRecording
                 'data_file_type'};
     end
     
-    properties (SetAccess = immutable)
+    properties (SetAccess = private)
         LFP_fs
+        good_channel_nums
+        beh % abbreviation for behavior matrix. Specific format called beh.
+        channel_num2physical_map
     end
     
     properties
-        good_channels
         channel_list
     end
     
@@ -19,19 +21,21 @@ classdef ArrayRecording
         function obj = ArrayRecording(dp_data)
             if(nargin > 0)
             % dp_data is the path to the data directory
-            load([dp_data,'ArrayRecording_constructor_vars.m'],...
-                obj.constructor_vars{:})
-            load_function = ArrayRecording.get_load_function(data_file_type);
-            load_function(dp_data, fn_to_load_list)
+            run([dp_data,'ArrayRecording_constructor_vars.m'])%,...
+               % obj.constructor_vars{:})
+            obj.load_data(data_file_type, dp_data, fn_to_load_list);
+            clear(obj.constructor_vars{:})
             end
         end
-    end
-    
-    methods (Static)
-        function load_function = get_load_function(data_file_type)
-            load_function = str2function(['obj.LOAD_',data_file_type]);
+        function load_data(obj, data_file_type, dp_data, fn_to_load_list)
+            % WOW THE HACKS
+            eval(['obj.LOAD_',data_file_type,'(dp_data, fn_to_load_list)'])
         end
-    end
+        function add_channel(obj, new_channel)
+            obj.channel_list{end+1} = new_channel;
+        end
+        
+    end        
     
 end
 

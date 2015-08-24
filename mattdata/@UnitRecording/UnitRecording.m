@@ -15,5 +15,9 @@ classdef UnitRecording
         end
     end
     
+    methods (Static)
+        width = trough_peak_width(waveforms)
+    end
+    
 end
 

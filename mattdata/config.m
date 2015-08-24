@@ -3,7 +3,7 @@
 % fn = file name
 dp_data_root = '/home/grahams/git_data/hatlab/mattdata/';
 
-dn_data_list = {'Rockstar/rs1050225/','Raju/040114'};
+dn_data_list = {'Rockstar/rs1050225/','Raju/040114/'};
 dn_load_data = 'raw_data_loader';
 
 fn_raw_data_vars = 'raw_data_vars.m';
