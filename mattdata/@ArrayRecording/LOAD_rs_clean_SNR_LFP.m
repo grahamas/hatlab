@@ -23,7 +23,6 @@ good_channel_nums = chans;
 
 obj.beh = beh;
 obj.LFP_fs = 1000;
-obj.good_channel_nums = good_channel_nums;
 obj.channel_num2physical_map = MIchan2rc;
 obj.channel_list = [];
 
@@ -38,11 +37,12 @@ for i_good_channel_num = 1:length(good_channel_nums)
         return
     else
         if channel_num ~= prev_channel_num
+            if i_good_channel_num > 1
+                obj.add_channel(new_channel)
+            end
             n_units = 1;
             lfp_name = ['lfp',num2str(channel_num)];
             new_channel = ChannelRecording(obj, channel_num, eval(lfp_name));
-            obj.add_channel(new_channel) % probably have to do this after
-            % all changes to new_channel have been made...
         end
         channel_str = zero_pad_str(num2str(channel_num));
         vn_spike_times = ['Chan',channel_str,char(n_units-1+'a')];
@@ -51,12 +51,11 @@ for i_good_channel_num = 1:length(good_channel_nums)
             vn_spike_times = ['Chan',channel_str,char(n_units-1+'a')];
             assert(n_units < 26, sprintf('Infinite loop trying to find %s', vn_spike_times))
         end
-        spike_times = eval(vn_spike_times);
-        these_nev_spike_times = spike_times * nev_ft;
-        width = UnitRecording.trough_peak_width( nev_waveforms(...
-            ismember(these_nev_spike_times, nev_spike_times),:));
+        these_spike_times = eval(vn_spike_times);
+        these_nev_spike_times = these_spike_times * nev_ft;
         
-        new_unit = UnitRecording(new_channel, width, spike_times);
+        new_unit = UnitRecording(new_channel, these_spike_times);
+        new_unit.set_waveform_width_from_all(nev_waveforms, nev_spike_times, these_nev_spike_times);
         new_channel.add_unit(new_unit);
     end
     prev_channel_num = channel_num;

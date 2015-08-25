@@ -1,4 +1,4 @@
-classdef ArrayRecording
+classdef ArrayRecording < dynamicprops
     %ARRAYRECORDING Abstracts interaction with units.
     
     properties (Constant)
@@ -8,12 +8,8 @@ classdef ArrayRecording
     
     properties (SetAccess = private)
         LFP_fs
-        good_channel_nums
         beh % abbreviation for behavior matrix. Specific format called beh.
         channel_num2physical_map
-    end
-    
-    properties
         channel_list
     end
     
@@ -24,18 +20,42 @@ classdef ArrayRecording
             run([dp_data,'ArrayRecording_constructor_vars.m'])%,...
                % obj.constructor_vars{:})
             obj.load_data(data_file_type, dp_data, fn_to_load_list);
-            clear(obj.constructor_vars{:})
             end
         end
         function load_data(obj, data_file_type, dp_data, fn_to_load_list)
             % WOW THE HACKS
-            eval(['obj.LOAD_',data_file_type,'(dp_data, fn_to_load_list)'])
+            eval(['obj.LOAD_',data_file_type,'(dp_data, fn_to_load_list)']);
         end
         function add_channel(obj, new_channel)
             obj.channel_list{end+1} = new_channel;
         end
-        
-    end        
-    
+        function ret_cell = map_over_channels(obj, fxn)
+            n_channels = length(obj.channel_list);
+            ret_cell = cell(n_channels, 1);
+            for i_channel = 1:n_channels
+                ret_cell{i_channel} = fxn(obj.channel_list{i_channel});
+            end
+        end
+        function ret_cell = map_over_units(obj, fxn)
+            n_channels = length(obj.channel_list);
+            ret_cell = {};
+            for i_channel = 1:n_channels
+                channel = obj.channel_list{i_channel};
+                ret_cell = [ret_cell; channel.map_over_units(fxn)];
+            end
+        end
+        function for_all_channels(obj, fxn)
+            n_channels = length(obj.channel_list);
+            for i_channel = 1:n_channels
+                fxn(obj.channel_list{i_channel});
+            end
+        end
+        function parfor_all_channels(obj, fxn)
+            n_channels = length(obj.channel_list);
+            parfor i_channel = 1:n_channels
+                fxn(obj.channel_list{i_channel});
+            end
+        end
+    end
 end
 
