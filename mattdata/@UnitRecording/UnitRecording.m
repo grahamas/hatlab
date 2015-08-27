@@ -2,11 +2,7 @@ classdef UnitRecording < dynamicprops
     
     properties (Constant)
         spike_angles_property_prefix = 'spike_angles_';
-        get_spike_angles_property_name = ...
-            @(band_name) [spike_angles_property_prefix, band_name];
         epoch_ppcs_property_prefix = 'epoch_ppcs_';
-        get_epoch_ppcs_property_name = ...
-            @(band_name,epoch_name) [epoch_ppcs_property_prefix, band_name,'_', epoch_name];
     end
     
     properties (SetAccess = immutable)
@@ -30,7 +26,7 @@ classdef UnitRecording < dynamicprops
         end
         function spike_angles = compute_spike_angles(obj, band_name)
             channel = obj.parent_channel;
-            band_angles = channel.get_band_LFP_angles(band_name);
+            band_angles = channel.get_band_angles(band_name);
             spike_angles = channel.field_interpolation(band_angles, obj.spike_times);
         end
         function epoch_ppcs = compute_band_epoch_ppcs(obj, band_name, epoch_name)
@@ -99,6 +95,15 @@ classdef UnitRecording < dynamicprops
                 obj.add_prop(epoch_ppcs_property_name);
             end
             obj.(epoch_ppcs_property_name) = epoch_ppcs;
+        end
+    end
+    
+    methods %%% THIS IS STUPID
+        function pn = get_epoch_ppcs_property_name(obj,band_name,epoch_name) 
+            pn = [obj.epoch_ppcs_property_prefix, band_name,'_', epoch_name];
+        end
+        function pn = get_spike_angles_property_name(obj,band_name)
+            pn = [obj.spike_angles_property_prefix, band_name];
         end
     end
     

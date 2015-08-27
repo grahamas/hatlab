@@ -2,9 +2,7 @@ classdef ChannelRecording < dynamicprops
     
     properties (Constant)
         band_property_prefix = 'LFP_band_';
-        get_band_property_name = @(band_name) [band_property_prefix, band_name];
-        angle_property_prefix = [band_property_prefix, 'angle_'];
-        get_angle_property_name = @(band_name) [angle_property_prefix, band_name];
+        angles_property_prefix = ['LFP_band_', 'angles_'];
     end
     
     properties (SetAccess = immutable)
@@ -34,7 +32,7 @@ classdef ChannelRecording < dynamicprops
             n_units = length(obj.unit_list);
             ret_cell = cell(n_units, 1);
             for i_unit = 1:n_units
-                ret_cell{i_unit} = fxn(obj.unit_list(i_unit));
+                ret_cell{i_unit} = fxn(obj.unit_list{i_unit});
             end
         end
         function for_all_units(obj, fxn)
@@ -48,7 +46,7 @@ classdef ChannelRecording < dynamicprops
             band = bandpass_filt(obj.LFP, band_cutoffs);
         end
         function band_angles = compute_band_angles(obj, band_name)
-            band_angles = unwrap(angle(hilbert(obj.get_band_LFP(band_name))));
+            band_angles = unwrap(angle(hilbert(obj.get_band(band_name))));
         end
     end
     
@@ -59,7 +57,7 @@ classdef ChannelRecording < dynamicprops
             if ~isprop(band_property_name, obj)
                 obj.addprop(band_property_name);
                 obj.(band_property_name) = ...
-                    obj.compute_band(obj, band_name);
+                    obj.compute_band(band_name);
             end
             band = obj.(band_property_name);
         end
@@ -86,7 +84,14 @@ classdef ChannelRecording < dynamicprops
             obj.(angles_property_name) = band_angles;
         end
     end
-        
+    
+    methods %%% THIS IS STUPID
+        function pn = get_band_property_name(obj, band_name)
+            pn = [obj.band_property_prefix, band_name];
+        end
+        function pn = get_angles_property_name(obj, band_name) 
+            pn = [obj.angles_property_prefix, band_name];
+        end
     end
 end
 
