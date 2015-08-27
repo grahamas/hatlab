@@ -7,14 +7,16 @@ dn_data_list = {'Rockstar/rs1050225/','Raju/040114/'};
 dn_load_data = 'raw_data_loader';
 
 fn_raw_data_vars = 'raw_data_vars.m';
+fn_analysis_columns = 'analysis_columns.m';
+fn_array_recording = 'array_recording.m';
 
 raw_data_loading_functions = {};
 raw_data_loading_functions.rj_P_clean_LFP = @load_p_data;
 raw_data_loading_functions.rs_clean_SNR_LFP = @load_rs_data;
 
-regime_list = {'instruction_early', 'instruction_late', 'execution'};
-regime_beh_dx_list = {3, 3, 5};
-regime_window_sec_list = {[-1, -.5], [-.5, 0], [0, .5]};
+epoch_name_list = {'instruction_early', 'instruction_late', 'execution'};
+epoch_beh_dx_list = {3, 3, 5};
+epoch_window_sec_list = {[-1, -.5], [-.5, 0], [0, .5]};
 
 standard_band_name_list = {'delta', 'theta', 'alpha', 'beta', 'gamma'};
 beta_quarter_band_name_list = {'q1_beta', 'q2_beta', 'q3_beta', 'q4_beta'};

@@ -6,11 +6,13 @@ classdef ArrayRecording < dynamicprops
                 'data_file_type'};
     end
     
-    properties (SetAccess = private)
+    properties
         LFP_fs
         beh % abbreviation for behavior matrix. Specific format called beh.
         channel_num2physical_map
         channel_list
+        band_cutoffs
+        epoch_windows
     end
     
     methods
@@ -55,6 +57,9 @@ classdef ArrayRecording < dynamicprops
             parfor i_channel = 1:n_channels
                 fxn(obj.channel_list{i_channel});
             end
+        end
+        function parfor_all_units(obj, fxn)
+            obj.parfor_all_channels(@(ch) ch.for_all_units(fxn));
         end
     end
 end
