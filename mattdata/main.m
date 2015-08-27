@@ -34,13 +34,16 @@ for i_data_dir = 1:n_data_dirs
     for i_band = 1:length(USE_band_name_list)
         this_band_name = USE_band_name_list{i_band};
         these_columns = {};
+        fprintf('Starting width\n')
         width_cell = array_recording.map_over_units(@(unit)...
             unit.width);        
         n_units = length(width_cell);
         for i_epoch = 1:length(epoch_name_list)
             this_epoch_name = epoch_name_list{i_epoch};
+            fprintf('Starting firing rate\n')
             firing_rate_cell = array_recording.map_over_units(@(unit)...
                 unit.get_epoch_firing_rate(epoch_name));
+            fprintf('Starting ppc\n')
             ppc_cell = array_recording.map_over_units(@(unit)...
                 unit.get_band_epoch_ppcs(this_band_name, this_epoch_name));
             expand = @(small,large) repmat(small, size(large));
