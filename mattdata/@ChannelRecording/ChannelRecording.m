@@ -54,7 +54,7 @@ classdef ChannelRecording < dynamicprops
     methods
         function band = get_band(obj, band_name)
             band_property_name = obj.get_band_property_name(band_name);
-            if ~isprop(band_property_name, obj)
+            if ~isprop(obj,band_property_name)
                 obj.addprop(band_property_name);
                 obj.(band_property_name) = ...
                     obj.compute_band(band_name);
@@ -63,7 +63,7 @@ classdef ChannelRecording < dynamicprops
         end
         function angles = get_band_angles(obj, band_name)
             angles_property_name = obj.get_angles_property_name(band_name);
-            if ~isprop(angles_property_name, obj)
+            if ~isprop(obj,angles_property_name)
                 obj.addprop(angles_property_name);
                 obj.(angles_property_name) = obj.compute_band_angles(band_name);
             end
@@ -71,14 +71,14 @@ classdef ChannelRecording < dynamicprops
         end
         function set_band(obj, band_name, band)
             band_property_name = obj.band_property_name(band_name);
-            if ~isprop(band_property_name, obj)
+            if ~isprop(obj,band_property_name)
                 obj.addprop(band_property_name);
             end
             obj.(band_property_name) = band;
         end
         function set_band_angles(obj, band_name, band_angles)
             angles_property_name = obj.get_angles_property_name(band_name);
-            if ~isprop(angles_property_name, obj)
+            if ~isprop(obj,angles_property_name)
                 obj.addprop(angles_property_name);
             end
             obj.(angles_property_name) = band_angles;

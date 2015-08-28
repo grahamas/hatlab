@@ -53,7 +53,7 @@ classdef UnitRecording < dynamicprops
            epoch_spike_angles = cell(n_windows, 1);
            for i_window = 1:n_windows
                window = epoch_window_list(i_window, :);
-               epoch_spike_angles(i_window) = obj.window_spike_angles(band_name, window);
+               epoch_spike_angles{i_window} = obj.window_spike_angles(band_name, window);
            end
         end
         function windowed_angles = window_spike_angles(obj, band_name, window)
@@ -68,7 +68,7 @@ classdef UnitRecording < dynamicprops
     methods
         function spike_angles = get_spike_angles(obj, band_name)
             spike_angles_property_name = obj.get_spike_angles_property_name(band_name);
-            if ~isprop(spike_angles_property_name, obj)
+            if ~isprop(obj,spike_angles_property_name)
                 obj.addprop(spike_angles_property_name);
                 obj.(spike_angles_property_name) = obj.compute_spike_angles(band_name);
             end
@@ -76,14 +76,14 @@ classdef UnitRecording < dynamicprops
         end
         function set_spike_angles(obj, band_name, spike_angles)
             spike_angles_property_name = obj.get_spike_angles_property_name(band_name);
-            if ~isprop(spike_angles_property_name, obj)
+            if ~isprop(obj,spike_angles_property_name)
                 obj.addprop(spike_angles_property_name);
             end
             obj.([obj.spike_angles_prefix, band_name]) = spike_angles;
         end
         function epoch_ppcs = get_band_epoch_ppcs(obj, band_name,epoch_name)
             epoch_ppcs_property_name = obj.get_epoch_ppcs_property_name(band_name,epoch_name);
-            if ~isprop(epoch_ppcs_property_name, obj)
+            if ~isprop(obj,epoch_ppcs_property_name)
                 obj.add_prop(epoch_ppcs_property_name);
                 obj.(epoch_ppcs_property_name) = obj.compute_epoch_ppcs(band_name,epoch_name);
             end
@@ -91,7 +91,7 @@ classdef UnitRecording < dynamicprops
         end
         function set_band_epoch_ppcs(obj, band_name, epoch_name, epoch_ppcs)
             epoch_ppcs_property_name = obj.get_epoch_ppcs_property_name(band_name,epoch_name);
-            if ~isprop(epoch_ppcs_property_name)
+            if ~isprop(obj,epoch_ppcs_property_name)
                 obj.add_prop(epoch_ppcs_property_name);
             end
             obj.(epoch_ppcs_property_name) = epoch_ppcs;

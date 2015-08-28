@@ -40,11 +40,12 @@ classdef ArrayRecording < dynamicprops
         end
         function ret_cell = map_over_units(obj, fxn)
             n_channels = length(obj.channel_list);
-            ret_cell = {};
+            ret_cell = cell(n_channels, 1);
             for i_channel = 1:n_channels
                 channel = obj.channel_list{i_channel};
-                ret_cell = [ret_cell; channel.map_over_units(fxn)];
+                ret_cell{i_channel} = channel.map_over_units(fxn);
             end
+            ret_cell = vertcat(ret_cell{:});
         end
         function for_all_channels(obj, fxn)
             n_channels = length(obj.channel_list);

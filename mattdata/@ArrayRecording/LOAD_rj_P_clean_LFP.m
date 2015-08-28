@@ -41,7 +41,7 @@ for i_good_unit = 1:n_good_units
             n_units = 1;
             LFP_name = ['lfp',num2str(channel_num)];
             if exist(LFP_name, 'var')
-                new_channel = ChannelRecording( obj, channel_num, eval(LFP_name));
+                new_channel = ChannelRecording( obj, channel_num, double(eval(LFP_name)));
             else
                 fprintf('No LFP recording found! Chan %d\n', channel_num)
                 continue
