@@ -43,7 +43,7 @@ classdef UnitRecording < dynamicprops
             for i_window = 1:n_windows
                 window = epoch_window_list(i_window, :);
                 windowed_spikes = (obj.spike_times >= window(1)) & (obj.spike_times < window(2));
-                window_firing_rate_list(i_window) = length(windowed_spikes) / (window(2) - window(1));
+                window_firing_rate_list(i_window) = sum(windowed_spikes) / (window(2) - window(1));
             end
             firing_rate = mean(window_firing_rate_list);
         end

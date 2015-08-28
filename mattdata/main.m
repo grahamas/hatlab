@@ -13,25 +13,31 @@ n_data_dirs = length(dn_data_list);
 results = cell(n_data_dirs, 1);
 
 
-for i_data_dir = 2:n_data_dirs
+for i_data_dir = 1:1
     dn_data = dn_data_list{i_data_dir};
     dp_data = [dp_data_root, dn_data];
+    
+    fp_analysis_columns = [dp_data, fn_analysis_columns];
+    fp_array_recording = [dp_data, fn_array_recording];
 
-    
-    array_recording = ArrayRecording(dp_data);
-    array_recording.band_cutoffs = USE_band_cutoffs;
-    
-    epoch_fxn = @(beh_dx, window) [array_recording.beh(:,beh_dx) + window(1),...
-                                   array_recording.beh(:,beh_dx) + window(2)];    
-    epoch_windows = {};
-    for i_epoch = 1:length(epoch_name_list)
-        epoch_name = epoch_name_list{i_epoch};
-        beh_dx = epoch_beh_dx_list{i_epoch};
-        window = epoch_window_sec_list{i_epoch};
-        epoch_windows.(epoch_name) = epoch_fxn(beh_dx, window);
+    if exist(fp_array_recording, 'file')
+        load(fp_array_recording)
+    else
+        array_recording = ArrayRecording(dp_data);
+        array_recording.band_cutoffs = USE_band_cutoffs;
+
+        epoch_fxn = @(beh_dx, window) [array_recording.beh(:,beh_dx) + window(1),...
+                                       array_recording.beh(:,beh_dx) + window(2)];    
+        epoch_windows = {};
+        for i_epoch = 1:length(epoch_name_list)
+            epoch_name = epoch_name_list{i_epoch};
+            beh_dx = epoch_beh_dx_list{i_epoch};
+            window = epoch_window_sec_list{i_epoch};
+            epoch_windows.(epoch_name) = epoch_fxn(beh_dx, window);
+        end
+
+        array_recording.epoch_windows = epoch_windows;
     end
-    
-    array_recording.epoch_windows = epoch_windows;
 
     columns_by_band = {};
     for i_band = 1:length(USE_band_name_list)
@@ -41,6 +47,7 @@ for i_data_dir = 2:n_data_dirs
         these_columns.width = [];
         these_columns.ppc = [];
         these_columns.epoch = [];
+        these_columns.n_spikes = [];
         fprintf('Starting width\n')
         width_cell = array_recording.map_over_units(@(unit)...
             unit.waveform_width);        
@@ -58,6 +65,8 @@ for i_data_dir = 2:n_data_dirs
             fprintf('Starting ppc\n')
             ppc_cell = array_recording.map_over_units(@(unit)...
                 unit.compute_band_epoch_ppcs(this_band_name, this_epoch_name));
+            n_spikes_cell = array_recording.map_over_units(@(unit)...
+                unit.compute_band_epoch_spike_angles(this_band_name, this_epoch_name));
 
             % expand replicates the first input to be the size of the second.
             % This is naive, but works in this case because all of my use
@@ -78,6 +87,7 @@ for i_data_dir = 2:n_data_dirs
             firing_rate_column = vertcat(this_firing_rate_cell{:});
             width_column = vertcat(this_width_cell{:});
             ppc_column = vertcat(ppc_cell{:});
+            n_spikes_column = vertcat(n_spikes_cell{:});
             epoch_column = expand({this_epoch_name}, ppc_column);
 
             % Concatenate the created columns onto the end of these_columns
@@ -85,11 +95,10 @@ for i_data_dir = 2:n_data_dirs
             these_columns.width = vertcat(these_columns.width, width_column);
             these_columns.ppc = vertcat(these_columns.ppc, ppc_column);
             these_columns.epoch = vertcat(these_columns.epoch, epoch_column);
+            these_columns.n_spikes = vertcat(these_columns.n_spikes, n_spikes);
         end
         columns_by_band.(this_band_name) = these_columns;
     end
-    fp_analysis_columns = [dp_data, fn_analysis_columns];
-    fp_array_recording = [dp_data, fn_array_recording];
     save(fp_analysis_columns, 'columns_by_band', '-v7.3')
     save(fp_array_recording, 'array_recording', '-v7.3')
         

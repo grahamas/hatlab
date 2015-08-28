@@ -6,7 +6,7 @@ dp_data_root = '/home/grahams/git_data/hatlab/mattdata/';
 dn_data_list = {'Rockstar/rs1050225/','Raju/040114/'};
 dn_load_data = 'raw_data_loader';
 
-fn_analysis_columns = 'analysis_columns.mat';
+fn_analysis_columns = 'analysis_columns2.mat';
 fn_array_recording = 'array_recording.mat';
 
 raw_data_loading_functions = {};
