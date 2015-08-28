@@ -59,8 +59,8 @@ classdef ArrayRecording < dynamicprops
                 fxn(obj.channel_list{i_channel});
             end
         end
-        function parfor_all_units(obj, fxn)
-            obj.parfor_all_channels(@(ch) ch.for_all_units(fxn));
+        function for_all_units(obj, fxn)
+            obj.for_all_channels(@(ch) ch.for_all_units(fxn));
         end
     end
 end

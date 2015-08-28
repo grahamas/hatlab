@@ -38,7 +38,7 @@ classdef ChannelRecording < dynamicprops
         function for_all_units(obj, fxn)
             n_units = length(obj.unit_list);
             for i_unit = 1:n_units
-                fxn(obj.unit_list(i_unit));
+                fxn(obj.unit_list{i_unit});
             end
         end
         function band = compute_band(obj, band_name)
