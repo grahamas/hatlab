@@ -13,7 +13,7 @@ n_data_dirs = length(dn_data_list);
 results = cell(n_data_dirs, 1);
 
 
-for i_data_dir = 1:1
+for i_data_dir = 2:2
     dn_data = dn_data_list{i_data_dir};
     dp_data = [dp_data_root, dn_data];
     
@@ -61,12 +61,12 @@ for i_data_dir = 1:1
             % each unit. PPC has one array for each unit.
             fprintf('Starting firing rate\n')
             firing_rate_cell = array_recording.map_over_units(@(unit)...
-                unit.compute_epoch_firing_rate(epoch_name));
+                unit.compute_epoch_firing_rate(this_epoch_name));
             fprintf('Starting ppc\n')
             ppc_cell = array_recording.map_over_units(@(unit)...
                 unit.compute_band_epoch_ppcs(this_band_name, this_epoch_name));
             n_spikes_cell = array_recording.map_over_units(@(unit)...
-                unit.compute_band_epoch_spike_angles(this_band_name, this_epoch_name));
+                length(unit.compute_band_epoch_spike_angles(this_band_name, this_epoch_name)));
 
             % expand replicates the first input to be the size of the second.
             % This is naive, but works in this case because all of my use
@@ -95,7 +95,7 @@ for i_data_dir = 1:1
             these_columns.width = vertcat(these_columns.width, width_column);
             these_columns.ppc = vertcat(these_columns.ppc, ppc_column);
             these_columns.epoch = vertcat(these_columns.epoch, epoch_column);
-            these_columns.n_spikes = vertcat(these_columns.n_spikes, n_spikes);
+            these_columns.n_spikes = vertcat(these_columns.n_spikes, n_spikes_column);
         end
         columns_by_band.(this_band_name) = these_columns;
     end
