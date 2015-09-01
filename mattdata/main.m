@@ -21,6 +21,8 @@ for i_data_dir = 1:n_data_dirs
     fp_array_recording = [dp_data, fn_array_recording];
 
     load(fp_array_recording)
+    
+    array_recording.narrow_cutoff = narrow_cutoff_list(i_data_dir);
 
     columns_by_band = {};
     for i_band = 1:length(USE_band_name_list)
