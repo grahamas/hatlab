@@ -22,13 +22,9 @@ for i_data_dir = 1:n_data_dirs
 
     load(fp_array_recording)
     
+    array_recording.addprop('narrow_cutoff')
     array_recording.narrow_cutoff = narrow_cutoff_list(i_data_dir);
 
-    columns_by_band = {};
-    for i_band = 1:length(USE_band_name_list)
-        this_band_name = USE_band_name_list{i_band};
-        array_recording.for_all_channels(@add_unit_numbers);
-    end
     save(fp_array_recording, 'array_recording', '-v7.3')
         
 end
