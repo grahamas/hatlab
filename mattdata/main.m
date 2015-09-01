@@ -22,8 +22,9 @@ for i_data_dir = 1:n_data_dirs
 
     load(fp_array_recording)
     
-    array_recording.addprop('narrow_cutoff')
-    array_recording.narrow_cutoff = narrow_cutoff_list(i_data_dir);
+    resultants = array_recording.map_over_units(@(unit) plot_phase_distributions(unit, dp_data, 'beta', epoch_name_list));
+
+    save([dp_data, 'resultants.mat'], 'resultants', '-v7.3');
 
     save(fp_array_recording, 'array_recording', '-v7.3')
         
