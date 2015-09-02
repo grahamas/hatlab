@@ -36,7 +36,7 @@ else
     is_narrow = 0;
     width_str = 'BROAD';
 end
-resultants(n_epoch+1) = is_narrow;
+resultants(n_epochs+1) = is_narrow;
 suptitle(['Phase distributions by epoch, ', width_str, ' unit'])
 
 saveas(gcf, fp_fig, 'fig')

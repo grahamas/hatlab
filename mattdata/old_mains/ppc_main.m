@@ -67,7 +67,7 @@ for i_data_dir = 1:n_data_dirs
             ppc_cell = array_recording.map_over_units(@(unit)...
                 unit.compute_band_epoch_ppcs(this_band_name, this_epoch_name));
             n_spikes_cell = array_recording.map_over_units(@(unit)...
-                cellfun(@(cell) cellfun(@length, cell),...
+                cellfun(@(arr) arrayfun(@length, arr),...
                 unit.compute_band_epoch_spike_angles(this_band_name, this_epoch_name),...
                 'UniformOutput', 0));
 
@@ -103,6 +103,6 @@ for i_data_dir = 1:n_data_dirs
         columns_by_band.(this_band_name) = these_columns;
     end
     save(fp_analysis_columns, 'columns_by_band', '-v7.3')
-    %save(fp_array_recording, 'array_recording', '-v7.3')
+    save(fp_array_recording, 'array_recording', '-v7.3')
         
 end
