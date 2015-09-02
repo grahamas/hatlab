@@ -1,4 +1,4 @@
-function resultants = plot_phase_distributions( unit, dp_data, band_name, epoch_name_list )
+function [resultants] = plot_phase_distributions( unit, dp_data, band_name, epoch_name_list )
 %Also returns resultant vectors for each epoch
 
 channel_number = unit.parent_channel.channel_number;
@@ -30,10 +30,13 @@ end
 
 narrow_cutoff = unit.parent_channel.parent_array.narrow_cutoff;
 if unit.waveform_width < narrow_cutoff
+    is_narrow = 1;
     width_str = 'NARROW';
 else
+    is_narrow = 0;
     width_str = 'BROAD';
 end
+resultants(n_epoch+1) = is_narrow;
 suptitle(['Phase distributions by epoch, ', width_str, ' unit'])
 
 saveas(gcf, fp_fig, 'fig')
