@@ -13,7 +13,7 @@ n_data_dirs = length(dn_data_list);
 results = cell(n_data_dirs, 1);
 
 
-for i_data_dir = 2:2
+for i_data_dir = 1:n_data_dirs
     dn_data = dn_data_list{i_data_dir};
     dp_data = [dp_data_root, dn_data];
     
@@ -37,8 +37,9 @@ for i_data_dir = 2:2
         end
 
         array_recording.epoch_windows = epoch_windows;
-    end
+   end
 
+    array_recording.narrow_cutoff = narrow_cutoff_list(i_data_dir);
     columns_by_band = {};
     for i_band = 1:length(USE_band_name_list)
         this_band_name = USE_band_name_list{i_band};
@@ -67,8 +68,8 @@ for i_data_dir = 2:2
                 unit.compute_band_epoch_ppcs(this_band_name, this_epoch_name));
             n_spikes_cell = array_recording.map_over_units(@(unit)...
                 cellfun(@(cell) cellfun(@length, cell),...
-                unit.compute_band_epoch_spike_angles(this_band_name, this_epoch_name)),...
-                'UniformOutput', 0);
+                unit.compute_band_epoch_spike_angles(this_band_name, this_epoch_name),...
+                'UniformOutput', 0));
 
             % expand replicates the first input to be the size of the second.
             % This is naive, but works in this case because all of my use

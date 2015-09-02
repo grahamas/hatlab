@@ -12,6 +12,7 @@ classdef UnitRecording < dynamicprops
     
     properties
         waveform_width = NaN;
+        unit_number
     end
     
     methods

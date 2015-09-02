@@ -8,6 +8,7 @@ fn_no_ext = ['phase_distribution_', num2str(channel_number),'_',num2str(unit_num
 fp_fig = [dp_data, 'phase_distribution/', fn_no_ext, '.fig'];
 fp_png = [dp_data, 'phase_distribution/', fn_no_ext, '.png'];
 
+set(0,'DefaultTextInterpreter','none'); 
 figure
 n_epochs = length(epoch_name_list);
 subplot(1, n_epochs, 1);
@@ -17,13 +18,14 @@ for i_epoch = 1:n_epochs
     epoch_spike_angles = unit.compute_band_epoch_spike_angles(band_name, epoch_name);
     epoch_spike_angles = vertcat(epoch_spike_angles{:});
     epoch_spike_angles = mod(epoch_spike_angles, 2*pi);
+    not_nan = ~isnan(epoch_spike_angles);
     [tout, rout] = rose(epoch_spike_angles,20);
-    hold on;
-    polar(tout, rout/trapz(tout,rout))
     title(epoch_name)
-    resultants(i_epoch) = mean(cos(epoch_spike_angles) + 1i * sin(epoch_spike_angles));
+    resultants(i_epoch) = mean(cos(epoch_spike_angles(not_nan)) + 1i * sin(epoch_spike_angles(not_nan)));
     [cart_x, cart_y] = pol2cart(angle(resultants(i_epoch)), abs(resultants(i_epoch)));
-    compass(cart_x, cart_y)
+    compass(cart_x, cart_y, 'r')
+    hold all
+    polar(tout, rout/trapz(tout,rout))
 end
 
 narrow_cutoff = unit.parent_channel.parent_array.narrow_cutoff;
@@ -36,6 +38,7 @@ suptitle(['Phase distributions by epoch, ', width_str, ' unit'])
 
 saveas(gcf, fp_fig, 'fig')
 saveas(gcf, fp_png, 'png')
+close
 
 end
 

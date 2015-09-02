@@ -52,6 +52,7 @@ for i_good_unit = 1:n_good_units
         new_unit = UnitRecording(new_channel, these_spike_times);
         %new_unit.set_waveform_width_from_all(waveforms, spikeTimes, these_spike_times);
         new_unit.spike_width = spikeWidths(i_good_unit);
+        new_unit.unit_number = n_units;
         new_channel.add_unit(new_unit);
         
     end

@@ -13,6 +13,7 @@ classdef ArrayRecording < dynamicprops
         channel_list
         band_cutoffs
         epoch_windows
+        narrow_cutoff
     end
     
     methods

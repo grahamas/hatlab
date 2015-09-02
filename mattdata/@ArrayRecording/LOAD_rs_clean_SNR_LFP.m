@@ -41,9 +41,14 @@ for i_good_channel_num = 1:length(good_channel_nums)
                 obj.add_channel(new_channel)
             end
             n_units = 1;
+            assigned_units = 1;
             lfp_name = ['lfp',num2str(channel_num)];
             new_channel = ChannelRecording(obj, channel_num, eval(lfp_name));
+        else
+            n_units = n_units + 1;
+            assigned_units = assigned_units + 1;
         end
+
         channel_str = zero_pad_str(num2str(channel_num));
         vn_spike_times = ['Chan',channel_str,char(n_units-1+'a')];
         while ~exist(vn_spike_times,'var')
@@ -56,6 +61,7 @@ for i_good_channel_num = 1:length(good_channel_nums)
         
         new_unit = UnitRecording(new_channel, these_spike_times);
         new_unit.set_waveform_width_from_all(nev_waveforms, nev_spike_times, these_nev_spike_times);
+        new_unit.unit_number = assigned_units;
         new_channel.add_unit(new_unit);
     end
     prev_channel_num = channel_num;
