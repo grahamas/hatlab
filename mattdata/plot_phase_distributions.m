@@ -18,12 +18,12 @@ for i_epoch = 1:n_epochs
     epoch_spike_angles = vertcat(epoch_spike_angles{:});
     epoch_spike_angles = mod(epoch_spike_angles, 2*pi);
     [tout, rout] = rose(epoch_spike_angles,20);
-    domain = (0:pi:(19*pi))./10;-
     hold on;
-    polar(tout, rout/trapz(domain,rout))
+    polar(tout, rout/trapz(tout,rout))
     title(epoch_name)
-    resultants(i_epoch) = mean(cos(epoch_spike_angles) + i * sin(epoch_spike_angles));
-    compass(pol2cart(angle(resultants(i_epoch)), abs(resultants(i_epoch))), 'color', 'r')
+    resultants(i_epoch) = mean(cos(epoch_spike_angles) + 1i * sin(epoch_spike_angles));
+    [cart_x, cart_y] = pol2cart(angle(resultants(i_epoch)), abs(resultants(i_epoch)));
+    compass(cart_x, cart_y)
 end
 
 narrow_cutoff = unit.parent_channel.parent_array.narrow_cutoff;
