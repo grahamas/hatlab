@@ -1,6 +1,8 @@
 function [resultants] = plot_phase_distributions( unit, dp_data, band_name, epoch_name_list )
 %Also returns resultant vectors for each epoch
 
+'plotting'
+
 channel_number = unit.parent_channel.channel_number;
 unit_number = unit.unit_number;
 
@@ -20,6 +22,7 @@ for i_epoch = 1:n_epochs
     epoch_spike_angles = mod(epoch_spike_angles, 2*pi);
     not_nan = ~isnan(epoch_spike_angles);
     [tout, rout] = rose(epoch_spike_angles,20);
+    fprintf('%d / %d\n', sum(not_nan), length(not_nan))
     resultants(i_epoch) = mean(cos(epoch_spike_angles(not_nan)) + 1i * sin(epoch_spike_angles(not_nan)));
     [cart_x, cart_y] = pol2cart(angle(resultants(i_epoch)), abs(resultants(i_epoch)));
     polar(tout, rout/trapz(tout,rout))

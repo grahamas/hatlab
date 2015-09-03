@@ -13,8 +13,8 @@ n_data_dirs = length(dn_data_list);
 results = cell(n_data_dirs, 1);
 
 
-for i_data_dir = 1:n_data_dirs
-    dn_data = dn_data_list{i_data_dir};
+for i_data_dir = 2:n_data_dirs
+    dn_data = dn_data_list{i_data_dir}
     dp_data = [dp_data_root, dn_data];
     
     fp_analysis_columns = [dp_data, fn_analysis_columns];

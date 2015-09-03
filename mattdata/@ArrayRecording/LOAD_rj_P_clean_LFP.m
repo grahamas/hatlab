@@ -27,9 +27,9 @@ for i_good_unit = 1:n_good_units
     %   3. binned spikes (not used here)
     this_unit = good_unit_list(i_good_unit);
     channel_num = this_unit.chan;
-    
+
     if channel_num < prev_channel_num
-        fprintf('Something is wrong!');
+        fprintf('Something is wrong!\n');
         return
     else
         if channel_num == prev_channel_num
@@ -51,7 +51,7 @@ for i_good_unit = 1:n_good_units
         
         new_unit = UnitRecording(new_channel, these_spike_times);
         %new_unit.set_waveform_width_from_all(waveforms, spikeTimes, these_spike_times);
-        new_unit.spike_width = spikeWidths(i_good_unit);
+        new_unit.waveform_width = spikeWidths(i_good_unit);
         new_unit.unit_number = n_units;
         new_channel.add_unit(new_unit);
         
