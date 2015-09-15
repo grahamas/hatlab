@@ -7,7 +7,7 @@ n_data_dirs = length(dn_data_list);
 for i_data_dir = 1:n_data_dirs
     dn_data = dn_data_list{i_data_dir};
     dp_data = [dp_data_root, dn_data];
-    fp_resultants = [dp_data, 'resultants.mat'];
+    fp_resultants = [dp_data, 'resultants_max_beta.mat'];
     
     load(fp_resultants);
     
@@ -29,6 +29,6 @@ for i_data_dir = 1:n_data_dirs
     subplot(2, n_epochs, n_epochs+1);
     ylabel('Broad')
     suptitle(dn_data)
-    saveas(gcf, [dp_data, 'resultants_plotted.fig'])
-    saveas(gcf, [dp_data, 'resultants_plotted.png'])
+    saveas(gcf, [dp_data, 'resultants_max_beta_plotted.fig'])
+    saveas(gcf, [dp_data, 'resultants_max_beta_plotted.png'])
 end

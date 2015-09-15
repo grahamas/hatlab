@@ -1,12 +1,11 @@
 function [resultants] = plot_phase_distributions( unit, dp_data, band_name, epoch_name_list )
 %Also returns resultant vectors for each epoch
 
-'plotting'
 
 channel_number = unit.parent_channel.channel_number;
 unit_number = unit.unit_number;
 
-fn_no_ext = ['phase_distribution_', num2str(channel_number),'_',num2str(unit_number)];
+fn_no_ext = ['phase_distribution_',band_name,'_', num2str(channel_number),'_',num2str(unit_number)];
 fp_fig = [dp_data, 'phase_distribution/', fn_no_ext, '.fig'];
 fp_png = [dp_data, 'phase_distribution/', fn_no_ext, '.png'];
 

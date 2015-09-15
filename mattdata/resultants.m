@@ -3,6 +3,7 @@
 config
 
 USE_band_name_list = {'max_beta'};
+MAX_beta_cutoffs = {[13.5,19.5],[12, 18]};
 
 % n = "number of"
 n_data_dirs = length(dn_data_list);
@@ -12,7 +13,7 @@ n_data_dirs = length(dn_data_list);
 results = cell(n_data_dirs, 1);
 
 
-for i_data_dir = 1:n_data_dirs
+for i_data_dir = n_data_dirs:n_data_dirs
     dn_data = dn_data_list{i_data_dir};
     dp_data = [dp_data_root, dn_data];
     
@@ -21,9 +22,12 @@ for i_data_dir = 1:n_data_dirs
 
     load(fp_array_recording)
     
+    array_recording.band_cutoffs.max_beta = MAX_beta_cutoffs{i_data_dir};
+
     length(array_recording.channel_list)
-    psd = grand_mean_psd(array_recording);
-    save([dp_data, 'psd.mat'], 'psd', '-v7.3');
+    resultants = array_recording.map_over_units(@(unit) plot_phase_distributions(unit, dp_data, 'max_beta', epoch_name_list));
+    resultants = vertcat(resultants{:})
+    save([dp_data, 'resultants_max_beta.mat'], 'resultants', '-v7.3');
 
     
     %%

@@ -2,7 +2,8 @@
 % Load config.m
 config
 
-USE_band_name_list = {'max_beta'};
+USE_band_name_list = {'beta'};
+USE_band_cutoffs.beta = [12, 32];
 
 % n = "number of"
 n_data_dirs = length(dn_data_list);
@@ -22,8 +23,8 @@ for i_data_dir = 1:n_data_dirs
     load(fp_array_recording)
     
     length(array_recording.channel_list)
-    psd = grand_mean_psd(array_recording);
-    save([dp_data, 'psd.mat'], 'psd', '-v7.3');
+    [psd, f] = grand_mean_psd(array_recording);
+    save([dp_data, 'psd.mat'], 'psd', 'f', '-v7.3');
 
     
     %%

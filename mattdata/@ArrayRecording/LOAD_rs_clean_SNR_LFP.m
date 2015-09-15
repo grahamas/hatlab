@@ -26,6 +26,8 @@ obj.LFP_fs = 1000;
 obj.channel_num2physical_map = MIchan2rc;
 obj.channel_list = [];
 
+%obj.band_cutoffs.max_beta = [13.5, 19.5];
+
 prev_channel_num = 0;
 
 for i_good_channel_num = 1:length(good_channel_nums)

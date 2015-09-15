@@ -13,6 +13,7 @@ obj.beh = beh;
 obj.LFP_fs = 1000;
 obj.channel_num2physical_map = MIchan2rc;
 obj.channel_list = [];
+%obj.band_cutoffs.max_beta = [12,18];
 
 % renaming for later clarity
 good_unit_list = goodUnits;
