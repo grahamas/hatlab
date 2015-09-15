@@ -4,7 +4,7 @@ function y = bandpass_filt(x, cutoffs)
 % All frequency values are in Hz.
 Fs = 1000;  % Sampling Frequency
 
-N  = 8;    % Order
+N  = 4;    % Order
 Fc1 = cutoffs(1);  % Low Cutoff Frequency
 Fc2 = cutoffs(2);  % High Cutoff Frequency
 
