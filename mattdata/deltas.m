@@ -28,7 +28,7 @@ for i_data_dir = n_data_dirs:n_data_dirs
 
     for i_epoch = 1:length(epoch_name_list)
         epoch_name = epoch_name_list{i_epoch};
-        by_epoch.(epoch_name) = array_recording.map_over_channelss(@(ch) direction_phase_unit_pairs(ch,'max_beta', epoch_name));
+        by_epoch.(epoch_name) = array_recording.map_over_channels(@(ch) direction_phase_unit_pairs(ch,'max_beta', epoch_name));
     end
     save([dp_data, 'delta_direction_phase_pairs.mat'], 'by_epoch', '-v7.3');
 
