@@ -5,7 +5,7 @@ function direction_phase_pairs = direction_phase_unit_pairs(channel, band_name, 
     pref_dir_model_fun = @(b, x) b(1)+ b(2) .* cos(x - b(3));
     
     if (n_units < 2)
-        direction_phase_pairs = {[],[]};
+        direction_phase_pairs = struct('models', [], 'resnorms', [], 'firing_rates', [], 'resultant_angles', []);
         return
     end
 

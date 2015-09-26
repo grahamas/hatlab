@@ -13,7 +13,7 @@ n_data_dirs = length(dn_data_list);
 results = cell(n_data_dirs, 1);
 
 
-for i_data_dir = n_data_dirs:n_data_dirs
+for i_data_dir = 1:n_data_dirs
     dn_data = dn_data_list{i_data_dir};
     dp_data = [dp_data_root, dn_data];
     
