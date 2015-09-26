@@ -36,7 +36,7 @@ To actually move files, add the flag `--full_run` to the previous command, and r
 
 ## Integrity Checking
 
-Integrity checking hasn't quite been fully exposed to the command line interface. Everything is there, but at the moment it requires manual editing of a variable. It should be easy to fix. I just added in the --check_integrity flag, but adding in the necessary mechanics to switch between metrics was a bit beyond me. 
+Integrity checking hasn't quite been fully exposed to the command line interface. Everything is there, but at the moment it requires manual editing of a variable. It should be easy to fix. I just added in the --check_integrity flag, but adding in the necessary mechanics to switch between metrics was a bit beyond me. All that needs to happen is the switch inside the function `check_integrity`.
 
 There are two built-in metrics: `size_metric` and `hash_metric`. The `size_metric` simply ensures that the copied files are the same size as the original files. I haven't yet seen a case where this wasn't sufficient, but I'm not optimistic. The `hash_metric` does a SHA-256 hash of both files and compares. 
 
