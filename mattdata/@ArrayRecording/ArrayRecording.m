@@ -1,3 +1,8 @@
+
+% The loader script that must be in every data directory is called
+%%%%%%% ArrayRecording_constructor_vars.m %%%%%%%%
+% It is used in the constructor. 
+
 classdef ArrayRecording < dynamicprops
     %ARRAYRECORDING Abstracts interaction with units.
     
@@ -20,8 +25,9 @@ classdef ArrayRecording < dynamicprops
         function obj = ArrayRecording(dp_data)
             if(nargin > 0)
             % dp_data is the path to the data directory
-            run([dp_data,'ArrayRecording_constructor_vars.m'])%,...
-               % obj.constructor_vars{:})
+            run([dp_data,'ArrayRecording_constructor_vars.m']);
+		%%%% IF YOU CHANGE THE ABOVE LINE, MAKE SURE THE 
+		%%%% COMMENT AT THE TOP OF THE FILE MATCHES
             obj.load_data(data_file_type, dp_data, fn_to_load_list);
             end
         end

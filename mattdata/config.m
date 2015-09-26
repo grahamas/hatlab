@@ -8,6 +8,8 @@ dp_data_root = '/home/grahams/git_data/hatlab/mattdata/';
 
 % A list of data directories RELATIVE to the dp_data_root.
 % WARNING: Directory names should always terminate with the file separator.
+% Note: Each of these directories must contain a data loading script.
+% Note: (cont'd) You can find this name in @ArrayRecording/ArrayRecording.
 dn_data_list = {'Rockstar/rs1050225/','Raju/040114/'};
 
 % This list corresponds to dn_data_list, giving the cutoff bin numbers for narrow

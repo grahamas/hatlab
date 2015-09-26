@@ -9,9 +9,24 @@ The program is designed to be run on a slurm cluster (e.g. [midway]) so (locally
 
 The file `config.m` is a script containing most of the variables that are likely to change. The only variables that SHOULD change are `dp_data_root` and `dn_data_list`, both of which will change depending on the local file system. **NB**: make sure that directory names and paths always terminate with the file separator. 
 
-## Data Structure
+An example of how to load an `ArrayRecording` from scratch can be found in the "outdated" folder (which is not necessarily outdated...). Some analyses have also been confined to the "outdated" folder due to lack of integration or being one-off scripts. 
+
+## How to Incorporate a New Data Format
+
+When adding more data (i.e. a new recording session), the path to the folder containing the data is added to `config.m` as described above and in the file comments. Within the folder, you must place a script with the name stated at the top of `@ArrayRecording/ArrayRecording`. This script must define two variables: `fn_to_load_list` and `data_file_type`. The former is a list of `.mat` files relative to the data directory that are to be loaded. The latter is a string describing the data format. If the program can already handle that data format, then you are done, if not then you must write the parsing function.
+
+The string describing the data format must correspond to a parsing function in `@ArrayRecording`. In particular if the string is 'format' then the parsing function name must be `LOAD_format`. The parsing function takes the object, the data path, and the list of file names to load. The parsing function sets the base variables of the object. In particular: beh, LFP_fs, channel_num2physical_map. Additionally, the parser populates the channels and units of the array (omitting empty channels) such that each channel has defined its LFP and channel_num (which are provided through the `ChannelRecording` constructor. Note that the LFP must be a double), and each unit has defined the spike times (through the constructor) and the waveform_width and the unit_number.
+
+See below for additional information about the necessary directory structure. 
+
+
+## Structure
 
 The heart of the program is the class division: `ArrayRecording`, `ChannelRecording`, and `UnitRecording`. These are nested classes (meaning, ArrayRecording contains ChannelRecordings contain UnitRecordings). The principal means of interaction with the data structure is through functionals defined in ArrayRecording which allow the mapping of functions over channels or units. These functionals are *not parallelized* which is a major oversight that should be addressed before any attempts to extend the analysis to a larger dataset. See below for thoughts.
+
+The other structural aspect is in the file system. Though it is not hard-coded anywhere, my preference has been to have two parallel structures. One for files/software, and one for data. I do this in part because I use Github (it's not generally a good idea to upload gigabytes of data to Github...) but I find it generally reduces clutter. The only change necessary for this division is in the choice of `dp_data_root`.
+
+More important: Each data directory (meaning, each directory named in `dn_data_list`) must have a data loading file with a particular name. This name is given in `@ArrayRecording/ArrayRecording`. When you provide the `ArrayRecording` constructor with the data directory path, it attempts to run the script which in turn calls a static class function to parse the data structure appropriately.
 
 ## Parallelism
 

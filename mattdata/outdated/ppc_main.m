@@ -1,3 +1,6 @@
+% ORIGINAL MAIN (ish)
+
+% This loads an ArrayRecording if it does not exist.
 
 % Load config.m
 config
