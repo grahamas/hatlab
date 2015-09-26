@@ -6,8 +6,8 @@
 
 #### Run config #####
 # Extensions to copy/verify. WITH DOT.
-# ONLY_THESE_EXTS = None # copies all
-ONLY_THESE_EXTS = ['.nev']
+ONLY_THESE_EXTS = None # copies all
+#ONLY_THESE_EXTS = ['.nev']
 #####################
 
 ### System config ###
@@ -44,6 +44,8 @@ import safe_file_ops as sop
 ###### Constants #######
 ########################
 
+# Don't change these.
+
 RECORD_FNAME = 'record.json'
 UNPDICT_FNAME = 'unpdict.json'
 UNKNOWN_PATH = 'UNKNOWN'
@@ -51,6 +53,7 @@ UNKNOWN_PATH = 'UNKNOWN'
 SOURCE_RECORD_FNAME = 'source_record.json'
 ORGANIZED_RECORD_FNAME = 'organized_record.json'
 
+# Change this if you introduce a new naming scheme.
 DATE_RE_STRS = [r'[0-9]{8}', 
     r'[0-9]{6}', 
     r'\d{2}_\d{2}_\d{2}',
@@ -61,6 +64,7 @@ DATE_RES = map(re.compile, DATE_RE_STRS)
 
 NON_NUMERIC_RE = re.compile(r'[^\d]+')
 
+# If you work with datafiles from before January 1, 2012, change this.
 MIN_DATE = datetime.datetime.strptime('20120101','%Y%m%d').date()
 MAX_DATE = datetime.datetime.now().date()
 
@@ -550,6 +554,10 @@ parser.add_argument('--root', action='store', required=True,
 parser.add_argument('--fix_records', action='store_true', default=False)
 parser.add_argument('--exclude_dirs', action='store', nargs='+',
     help='Exclude directories containing this string.')
+parser.add_argument('--only_these_exts', action='store', nargs='+',
+    help='Only parse files with these extensions (with period).')
+parser.add_argument('--check_integrity', action='store_true', default=False,
+    help='Check the integrity of the copy.')
 args = parser.parse_args()
 
 monkey_name = args.monkey
@@ -557,8 +565,10 @@ full_run = args.full_run
 use_existing_record = args.use_existing_record
 just_validate_records = args.just_validate_records
 root = args.root
+check_integrity = args.check_integrity
 FIX_RECORDS = args.fix_records
 EXCLUDE_STRS = args.exclude_dirs
+ONLY_THESE_EXTS = args.only_these_exts
 
 # Validation functions
 def strip_mnky_name(path):
