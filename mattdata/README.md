@@ -11,7 +11,7 @@ The file `config.m` is a script containing most of the variables that are likely
 
 An example of how to load an `ArrayRecording` from scratch can be found in the "outdated" folder (which is not necessarily outdated...). Some analyses have also been confined to the "outdated" folder due to lack of integration or being one-off scripts. 
 
-## How to Incorporate a New Data Format
+## How to Incorporate New Data (Even New Formats!)
 
 When adding more data (i.e. a new recording session), the path to the folder containing the data is added to `config.m` as described above and in the file comments. Within the folder, you must place a script with the name stated at the top of `@ArrayRecording/ArrayRecording`. This script must define two variables: `fn_to_load_list` and `data_file_type`. The former is a list of `.mat` files relative to the data directory that are to be loaded. The latter is a string describing the data format. If the program can already handle that data format, then you are done, if not then you must write the parsing function.
 
