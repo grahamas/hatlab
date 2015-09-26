@@ -1,3 +1,10 @@
+%ASSUMES ARRAY_RECORDING EXISTS
+
+% A typical top-level script.
+% However, this assumes that the raw data has already been processed and
+% saved as an array_recording.
+
+% The purpose of this is to get the psd and save it.
 
 % Load config.m
 config

@@ -1,4 +1,5 @@
 function [PSD, F] = grand_mean_PSD(array_recording)
+% Calculates a mean PSD across all channels.
     function Pxx_and_F = LFP_periodogram(channel) 
         [Pxx, F] = periodogram(channel.LFP,[],[],channel.parent_array.LFP_fs);
         Pxx_and_F = {Pxx, F};

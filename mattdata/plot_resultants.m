@@ -1,3 +1,6 @@
+% Given that the resultants have been saved, load them all
+% and plot them. Resultants are calculated and saved by calls
+% to resultants.m.
 
 config
 

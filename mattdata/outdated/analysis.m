@@ -1,4 +1,9 @@
 
+% This is very outdated, but gives an idea of how I conducted the analysis.
+% In particular, note that the cutoff in narrow_width should vary depending
+% on which dataset is being analyzed (the whole script should be a loop over
+% the datasets.
+
 ppc = columns.ppc;
 n_spikes = columns.n_spikes;
 valid = ~isnan(ppc) & (n_spikes > 2);

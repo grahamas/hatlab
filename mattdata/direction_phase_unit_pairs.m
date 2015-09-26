@@ -1,4 +1,16 @@
 function direction_phase_pairs = direction_phase_unit_pairs(channel, band_name, epoch_name)
+% This function IN THEORY should get, for each epoch pair of units on the same
+% channel, the pair (d_dir, d_phase) where d_dir is the difference in the
+% preferred direction and d_phase is the difference in the locked phase.
+%
+% IN PRACTICE this returns, for each channel a structure of models, residuals, 
+% firing rates, and resultant angles (all of which are empty if the channel
+% only has one unit. Then a later script parses to see if the residuals are
+% sufficiently small to use the models (which are models fitting a sinusoid
+% to the preferred direction). The return is parsed later. It should really
+% be parsed here but I only have one day left...
+% 
+% The next script is plot_and_parse_prefdir_vs_phase.m
     unit_list = channel.unit_list;
     n_units = length(unit_list);
 

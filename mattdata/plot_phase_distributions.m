@@ -1,7 +1,6 @@
 function [resultants] = plot_phase_distributions( unit, dp_data, band_name, epoch_name_list )
 %Also returns resultant vectors for each epoch
 
-
 channel_number = unit.parent_channel.channel_number;
 unit_number = unit.unit_number;
 

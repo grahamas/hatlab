@@ -1,3 +1,13 @@
+% ASSUMES ARRAY_RECORDINGS EXIST
+
+% A typical top-level script.
+% However, this particular one assumes that the ArrayRecordings have already
+% been parsed from the raw data, and saved.
+
+% As with most of these top-level files, the only really unique line is the
+% line containing "map_over_channels." In this case we want to find, for each
+% pair of units on the same channel, the differences in phase and direction
+% preference, so we can plot and compare them.
 
 % Load config.m
 config

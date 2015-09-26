@@ -1,7 +1,15 @@
+% ASSUMES ARRAY_RECORDING EXISTS
+
+% A typical top-level script.
+
+% This calculates the resultant mean vectors for each unit, for each epoch
+% where the mean is taken over the trial phase locking.
 
 % Load config.m
 config
 
+% These cutoffs are estimated by visual inspection of the beta peak in the
+% grand mean PSD of the data set.
 USE_band_name_list = {'max_beta'};
 MAX_beta_cutoffs = {[13.5,19.5],[12, 18]};
 

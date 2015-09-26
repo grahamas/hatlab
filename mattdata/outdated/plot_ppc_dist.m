@@ -1,3 +1,7 @@
+% As with other scripts referring to the "columns" variable, this script is
+% outdated. However, I suspect there is no more recent script so I leave it
+% to demonstrate how I generated the pcc distribution plots.
+
 YLIM = 4;
 
 ppc = columns.ppc;
